@@ -114,3 +114,38 @@ section p {
     color: #0066CC;
     font-size: 1.8rem;
 }
+
+.navbar {
+    position: sticky;
+    top: 0;
+    background-color: #0066CC;
+    color: white;
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.navbar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around;
+}
+
+.navbar li {
+    margin: 0;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar a:hover {
+    background-color: #004C99;
+    border-radius: 5px;
+}
