@@ -188,3 +188,20 @@ section p {
     margin: 0 0 10px;
     color: #1a73e8;
 }
+
+/* Add Task Button */
+#addTaskButton {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 20px auto;
+    display: block;
+}
+
+#addTaskButton:hover {
+    background-color: #218838;
+}

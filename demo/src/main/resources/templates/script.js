@@ -66,3 +66,27 @@ function displayWelcomeMessage(name) {
     welcomeMessage.style.textAlign = "center";
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    // Existing code...
+
+    // Add event listener for adding a new task
+    document.getElementById("addTaskButton").addEventListener("click", addTask);
+
+    // Function to add a new task
+    function addTask() {
+        const taskName = prompt("Enter task name:");
+        const taskDueDate = prompt("Enter due date (YYYY-MM-DD):");
+        const taskPriority = prompt("Enter priority (High, Medium, Low):");
+
+        if (taskName && taskDueDate && taskPriority) {
+            const taskCard = document.createElement("div");
+            taskCard.className = "task-card";
+            taskCard.innerHTML = `
+                <h3>${taskName}</h3>
+                <p>Due: ${taskDueDate}</p>
+                <p>Priority: ${taskPriority}</p>
+            `;
+            document.getElementById("tasks").appendChild(taskCard);
+        }
+    }
+});
