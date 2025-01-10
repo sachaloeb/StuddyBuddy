@@ -3,17 +3,20 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
+    background: linear-gradient(to right, #0066CC, #33CCFF);
+    color: #333;
 }
 
 header {
-    background: #0066CC;
+    background: #004C99;
     color: white;
     padding: 1.5rem 0;
     text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 header h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
     margin: 0;
 }
 
@@ -23,7 +26,7 @@ nav ul {
     list-style: none;
     margin: 0;
     padding: 0.5rem 0;
-    background: #004C99;
+    background: #003366;
 }
 
 nav ul li {
@@ -64,6 +67,20 @@ footer a:hover {
     text-decoration: underline;
 }
 
+section {
+    padding: 2rem;
+    background: #f4f4f4;
+    margin: 1rem 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+section h2 {
+    font-size: 1.8rem;
+    color: #004C99;
+    margin-bottom: 1rem;
+}
+
 section p {
     text-align: center;
     font-size: 1.2rem;
@@ -72,7 +89,7 @@ section p {
     font-style: italic;
 }
 
-.modal-button {
+.modal-button, #addTaskButton {
     background-color: #0066CC;
     color: white;
     border: none;
@@ -82,12 +99,14 @@ section p {
     border-radius: 5px;
     margin: 20px auto;
     display: block;
+    transition: background-color 0.3s ease;
 }
 
-.modal-button:hover {
+.modal-button:hover #addTaskButton:hover{
     background-color: #004C99;
 }
 
+/* Modal Styles */
 .modal {
     display: none;
     position: fixed;
@@ -124,14 +143,14 @@ section p {
 }
 
 #welcomeMessage h1 {
-    color: #0066CC;
+    color: white;
     font-size: 1.8rem;
 }
 
 .navbar {
     position: sticky;
     top: 0;
-    background-color: #0066CC;
+    background-color: #004C99;
     color: white;
     padding: 10px 0;
     z-index: 1000;
