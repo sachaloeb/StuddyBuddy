@@ -106,6 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
     calendar.render();
 });
 
+document.getElementById('theme-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    document.getElementById('theme-toggle').textContent = isDarkMode
+        ? 'Switch to Light Mode'
+        : 'Switch to Dark Mode';
+});
+
 
 // document.addEventListener("DOMContentLoaded", () => {
 //     const modal = document.getElementById("modal");
