@@ -1,3 +1,4 @@
+/* Global Styles */
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -7,6 +8,7 @@ body {
     color: #333;
 }
 
+/* Header Styles */
 header {
     background: #004C99;
     color: white;
@@ -20,6 +22,7 @@ header h1 {
     margin: 0;
 }
 
+/* Navigation Bar Styles */
 nav ul {
     display: flex;
     justify-content: center;
@@ -38,6 +41,7 @@ nav ul li a {
     text-decoration: none;
     font-size: 1.1rem;
     font-weight: bold;
+    transition: text-decoration 0.3s;
 }
 
 nav ul li a:hover {
@@ -64,16 +68,18 @@ footer p {
 footer a {
     color: white;
     text-decoration: none;
+    transition: text-decoration 0.3s;
 }
 
 footer a:hover {
     text-decoration: underline;
 }
 
+/* Section Styles */
 section {
     padding: 2rem;
     background: #f4f4f4;
-    margin: 1rem 0;
+    margin: 1rem auto;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -92,7 +98,8 @@ section p {
     font-style: italic;
 }
 
-.modal-button {
+/* Button Styles */
+.modal-button, #addTaskButton {
     background-color: #0066CC;
     color: white;
     border: none;
@@ -105,8 +112,16 @@ section p {
     transition: background-color 0.3s ease;
 }
 
-.modal-button:hover {
+.modal-button:hover, #addTaskButton:hover {
     background-color: #004C99;
+}
+
+#addTaskButton {
+    background-color: #28a745;
+}
+
+#addTaskButton:hover {
+    background-color: #218838;
 }
 
 /* Modal Styles */
@@ -139,6 +154,7 @@ section p {
     font-size: 1.5rem;
     color: #333;
     cursor: pointer;
+    transition: color 0.3s;
 }
 
 .close:hover {
@@ -150,6 +166,7 @@ section p {
     font-size: 1.8rem;
 }
 
+/* Sticky Navbar */
 .navbar {
     position: sticky;
     top: 0;
@@ -213,31 +230,6 @@ section p {
 .task-card h3 {
     margin: 0 0 10px;
     color: #1a73e8;
-}
-
-/* Add Task Button */
-#addTaskButton {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 20px auto;
-    display: block;
-}
-
-#addTaskButton:hover {
-    background-color: #218838;
-}
-
-section {
-    margin: 1rem;
-    padding: 1rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Typography and spacing */
