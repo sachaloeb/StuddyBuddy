@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudyBuddy</title>
     <link rel="stylesheet" href="styles.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js'></script>
 </head>
 <body>
     <header>
@@ -30,11 +32,7 @@
         <button id="introButton" class="modal-button">Learn More About StudyBuddy</button>
         <section id="schedule">
             <h2>Schedule</h2>
-            <ul>
-                <li>10:00 AM - Math Class</li>
-                <li>12:00 PM - Doctor Appointment</li>
-                <li>2:00 PM - Study: Algorithms</li>
-            </ul>
+            <div id="calendar"></div>
         </section>
         <section id="task-tracking">
             <h2>Task Tracking</h2>
