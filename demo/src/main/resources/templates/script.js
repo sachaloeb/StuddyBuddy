@@ -74,45 +74,73 @@ function generateTimetable() {
 }
 
 const addTask = (calendar) => {
-    const taskName = prompt("Enter task name:");
-    const taskDueDate = prompt("Enter due date (YYYY-MM-DD):");
-    const taskDueTime = prompt("Enter due time (HH:MM):");
-    const taskPriority = prompt("Enter priority (High, Medium, Low):");
-
-    if (taskName && taskDueDate && taskDueTime && taskPriority) {
-        const taskDateTime = new Date(`${taskDueDate}T${taskDueTime}:00`);
-        if (isNaN(taskDateTime.getTime())) {
-            alert("Invalid date or time format. Please try again.");
+    showCustomPrompt("Enter task name:", (taskName) => {
+        console.log(`Task name entered: ${taskName}`);
+        if (!taskName) {
+            console.log('Task name is empty, exiting.');
             return;
         }
 
-        const taskCard = document.createElement("div");
-        taskCard.className = "task-card";
-        taskCard.innerHTML = `
-            <h3>${taskName}</h3>
-            <p>Due: ${taskDateTime.toLocaleString()}</p>
-            <p>Priority: ${taskPriority}</p>
-            <label>
-                <input type="checkbox" class="task-complete-checkbox"> Done
-            </label>
-        `;
-        document.getElementById("tasks").appendChild(taskCard);
-
-        // Add the new task to the calendar
-        calendar.addEvent({
-            title: taskName,
-            start: taskDateTime.toISOString()
-        });
-
-        // Add event listener to the checkbox
-        taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
-            if (event.target.checked) {
-                taskCard.style.textDecoration = "line-through";
-            } else {
-                taskCard.style.textDecoration = "none";
+        showCustomPrompt("Enter due date (YYYY-MM-DD):", (taskDueDate) => {
+            console.log(`Due date entered: ${taskDueDate}`);
+            if (!taskDueDate) {
+                console.log('Due date is empty, exiting.');
+                return;
             }
+
+            showCustomPrompt("Enter due time (HH:MM):", (taskDueTime) => {
+                console.log(`Due time entered: ${taskDueTime}`);
+                if (!taskDueTime) {
+                    console.log('Due time is empty, exiting.');
+                    return;
+                }
+
+                showCustomPrompt("Enter priority (High, Medium, Low):", (taskPriority) => {
+                    console.log(`Priority entered: ${taskPriority}`);
+                    if (!taskPriority) {
+                        console.log('Priority is empty, exiting.');
+                        return;
+                    }
+
+                    const taskDateTime = new Date(`${taskDueDate}T${taskDueTime}:00`);
+                    if (isNaN(taskDateTime.getTime())) {
+                        alert("Invalid date or time format. Please try again.");
+                        console.log('Invalid date or time format.');
+                        return;
+                    }
+
+                    const taskCard = document.createElement("div");
+                    taskCard.className = "task-card";
+                    taskCard.innerHTML = `
+                        <h3>${taskName}</h3>
+                        <p>Due: ${taskDateTime.toLocaleString()}</p>
+                        <p>Priority: ${taskPriority}</p>
+                        <label>
+                            <input type="checkbox" class="task-complete-checkbox"> Done
+                        </label>
+                    `;
+                    document.getElementById("tasks").appendChild(taskCard);
+                    console.log('Task card created and appended.');
+
+                    // Add the new task to the calendar
+                    calendar.addEvent({
+                        title: taskName,
+                        start: taskDateTime.toISOString()
+                    });
+                    console.log('Task added to calendar.');
+
+                    // Add event listener to the checkbox
+                    taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
+                        if (event.target.checked) {
+                            taskCard.style.textDecoration = "line-through";
+                        } else {
+                            taskCard.style.textDecoration = "none";
+                        }
+                    });
+                });
+            });
         });
-    }
+    });
 };
 
 function displayTasks(tasks) {
@@ -206,11 +234,12 @@ if (storedUserName) {
 }
 
 function promptForUserName() {
-    const name = prompt("Welcome to StudyBuddy! Please enter your name:");
-    if (name) {
-        localStorage.setItem(userNameKey, name);
-        displayWelcomeMessage(name);
-    }
+    showCustomPrompt("Welcome to StudyBuddy! Please enter your name:", (name) => {
+        if (name) {
+            localStorage.setItem(userNameKey, name);
+            displayWelcomeMessage(name);
+        }
+    });
 }
 
 function displayWelcomeMessage(name) {
@@ -219,11 +248,42 @@ function displayWelcomeMessage(name) {
     welcomeMessage.style.textAlign = "center";
 }
 
-// Theme toggle functionality
-document.getElementById('theme-toggle').addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    document.getElementById('theme-toggle').textContent = isDarkMode
-        ? 'Switch to Light Mode'
-        : 'Switch to Dark Mode';
-});
+
+function showCustomPrompt(message, callback) {
+    const customPrompt = document.getElementById('customPrompt');
+    const promptMessage = document.getElementById('promptMessage');
+    const promptInput = document.getElementById('promptInput');
+    const promptOk = document.getElementById('promptOk');
+    const promptCancel = document.getElementById('promptCancel');
+    const closePrompt = document.getElementById('closePrompt');
+
+    promptMessage.textContent = message;
+    promptInput.value = '';
+
+    customPrompt.style.display = 'flex';
+    console.log(`Prompt displayed: ${message}`);
+
+    function closePromptModal() {
+        customPrompt.style.display = 'none';
+        promptOk.removeEventListener('click', onOk);
+        promptCancel.removeEventListener('click', onCancel);
+        closePrompt.removeEventListener('click', closePromptModal);
+        console.log('Prompt closed');
+    }
+
+    function onOk() {
+        console.log(`OK clicked with value: ${promptInput.value}`);
+        closePromptModal();
+        callback(promptInput.value);
+    }
+
+    function onCancel() {
+        console.log('Cancel clicked');
+        closePromptModal();
+        callback(null);
+    }
+
+    promptOk.addEventListener('click', onOk);
+    promptCancel.addEventListener('click', onCancel);
+    closePrompt.addEventListener('click', closePromptModal);
+}
