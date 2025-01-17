@@ -116,7 +116,7 @@ const addTask = (calendar) => {
                         <p>Due: ${taskDateTime.toLocaleString()}</p>
                         <p>Priority: ${taskPriority}</p>
                         <label>
-                            <input type="checkbox" class="task-complete-checkbox"> Done
+                            <input type="checkbox" class="task-complete-checkbox" id="tashCheckbox"> Done
                         </label>
                     `;
                     document.getElementById("tasks").appendChild(taskCard);
