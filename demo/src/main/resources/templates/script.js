@@ -75,37 +75,28 @@ function generateTimetable() {
 
 const addTask = (calendar) => {
     showCustomPrompt("Enter task name:", (taskName) => {
-        console.log(`Task name entered: ${taskName}`);
-        if (!taskName) {
-            console.log('Task name is empty, exiting.');
-            return;
-        }
+        if (!taskName) return;
 
         showCustomPrompt("Enter due date (YYYY-MM-DD):", (taskDueDate) => {
-            console.log(`Due date entered: ${taskDueDate}`);
-            if (!taskDueDate) {
-                console.log('Due date is empty, exiting.');
-                return;
-            }
+            if (!taskDueDate) return;
 
             showCustomPrompt("Enter due time (HH:MM):", (taskDueTime) => {
-                console.log(`Due time entered: ${taskDueTime}`);
-                if (!taskDueTime) {
-                    console.log('Due time is empty, exiting.');
-                    return;
-                }
+                if (!taskDueTime) return;
 
                 showCustomPrompt("Enter priority (High, Medium, Low):", (taskPriority) => {
-                    console.log(`Priority entered: ${taskPriority}`);
-                    if (!taskPriority) {
-                        console.log('Priority is empty, exiting.');
-                        return;
-                    }
+                    if (!taskPriority) return;
 
-                    const taskDateTime = new Date(`${taskDueDate}T${taskDueTime}:00`);
+                    const [hours, minutes] = taskDueTime.split(':').map(Number);
+                    const taskDateTime = new Date(taskDueDate);
+                    taskDateTime.setHours(hours, minutes, 0, 0);
+
+                    console.log(`Task Name: ${taskName}`);
+                    console.log(`Task Due Date: ${taskDueDate}`);
+                    console.log(`Task Due Time: ${taskDueTime}`);
+                    console.log(`Parsed DateTime: ${taskDateTime.toISOString()}`);
+
                     if (isNaN(taskDateTime.getTime())) {
                         alert("Invalid date or time format. Please try again.");
-                        console.log('Invalid date or time format.');
                         return;
                     }
 
@@ -113,21 +104,19 @@ const addTask = (calendar) => {
                     taskCard.className = "task-card";
                     taskCard.innerHTML = `
                         <h3>${taskName}</h3>
-                        <p>Due: ${taskDateTime.toLocaleString()}</p>
+                        <p>Due: ${taskDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}</p>
                         <p>Priority: ${taskPriority}</p>
                         <label>
-                            <input type="checkbox" class="task-complete-checkbox" id="tashCheckbox"> Done
+                            <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
                         </label>
                     `;
                     document.getElementById("tasks").appendChild(taskCard);
-                    console.log('Task card created and appended.');
 
                     // Add the new task to the calendar
                     calendar.addEvent({
                         title: taskName,
                         start: taskDateTime.toISOString()
                     });
-                    console.log('Task added to calendar.');
 
                     // Add event listener to the checkbox
                     taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
