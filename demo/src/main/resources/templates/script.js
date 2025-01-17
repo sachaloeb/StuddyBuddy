@@ -59,14 +59,21 @@ function generateTimetable() {
 const addTask = (calendar) => {
     const taskName = prompt("Enter task name:");
     const taskDueDate = prompt("Enter due date (YYYY-MM-DD):");
+    const taskDueTime = prompt("Enter due time (HH:MM):");
     const taskPriority = prompt("Enter priority (High, Medium, Low):");
 
-    if (taskName && taskDueDate && taskPriority) {
+    if (taskName && taskDueDate && taskDueTime && taskPriority) {
+        const taskDateTime = new Date(`${taskDueDate}T${taskDueTime}:00`);
+        if (isNaN(taskDateTime.getTime())) {
+            alert("Invalid date or time format. Please try again.");
+            return;
+        }
+
         const taskCard = document.createElement("div");
         taskCard.className = "task-card";
         taskCard.innerHTML = `
             <h3>${taskName}</h3>
-            <p>Due: ${taskDueDate}</p>
+            <p>Due: ${taskDateTime.toLocaleString()}</p>
             <p>Priority: ${taskPriority}</p>
         `;
         document.getElementById("tasks").appendChild(taskCard);
@@ -74,7 +81,7 @@ const addTask = (calendar) => {
         // Add the new task to the calendar
         calendar.addEvent({
             title: taskName,
-            start: taskDueDate
+            start: taskDateTime.toISOString()
         });
     }
 };
