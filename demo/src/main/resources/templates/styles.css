@@ -245,21 +245,129 @@ button:hover {
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #f9f9f9;
 }
 
 .task-card:hover {
     transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .task-card h3 {
     margin: 0 0 10px;
     color: #1a73e8;
+    font-size: 1.5rem;
+}
+
+.task-card p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.task-card .task-complete-checkbox {
+    margin-top: 10px;
 }
 
 /* Typography and spacing */
 h1, h2, h3 {
     margin: 0.5rem 0;
+}
+
+/* FullCalendar Styles */
+#calendar {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 10px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.fc-toolbar {
+    background-color: #007bff;
+    color: white;
+    border-radius: 8px 8px 0 0;
+    padding: 10px;
+}
+
+.fc-button {
+    background-color: #004C99;
+    border: none;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.fc-button:hover {
+    background-color: #003366;
+}
+
+.fc-daygrid-day {
+    border: 1px solid #ccc;
+}
+
+.fc-daygrid-day-number {
+    color: #007bff;
+}
+
+.fc-event {
+    background-color: #1a73e8;
+    border: none;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    transition: transform 0.2s;
+}
+
+.fc-event:hover {
+    transform: scale(1.05);
+}
+
+.fc-toolbar-title {
+    color: white;
+}
+
+.fc-prev-button, .fc-next-button {
+    background-color: #004C99;
+    border: none;
+    color: white;
+    padding: 10px 10px; /* Increased padding for better visibility */
+    border-radius: 5px;
+    font-size: 1rem; /* Increased font size for better visibility */
+    transition: background-color 0.3s;
+    display: inline-block; /* Ensure buttons are inline */
+    margin: 0 5px; /* Add some space between buttons */
+    text-align: center;
+    position: relative;
+}
+
+/*.fc-prev-button::before {*/
+/*    content: 'Prev';*/
+/*    position: absolute;*/
+/*    left: 50%;*/
+/*    transform: translateX(-50%);*/
+/*}*/
+
+/*.fc-next-button::before {*/
+/*    content: 'Next';*/
+/*    position: absolute;*/
+/*    left: 50%;*/
+/*    transform: translateX(-50%);*/
+/*}*/
+
+.fc-prev-button::after {
+    content: 'Prev';
+}
+
+.fc-next-button::after {
+    content: 'Next';
+}
+
+.fc-prev-button:hover, .fc-next-button:hover {
+    background-color: #003366;
 }
 
 /* Tablet view */

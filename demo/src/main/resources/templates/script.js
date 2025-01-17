@@ -27,7 +27,27 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize FullCalendar
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'timeGridWeek'
+        initialView: 'timeGridWeek',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        customButtons: {
+            prev: {
+                text: 'Prev',
+                click: function() {
+                    calendar.prev();
+                }
+            },
+            next: {
+                text: 'Next',
+                click: function() {
+                    calendar.next();
+                }
+            }
+        },
+        themeSystem: 'bootstrap'
     });
     calendar.render();
 
@@ -36,9 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Generate the study timetable
     generateTimetable();
-
-    // Fetch and display tasks
-    //fetchTasks();
 });
 
 function setupTaskTracking() {
@@ -75,6 +92,9 @@ const addTask = (calendar) => {
             <h3>${taskName}</h3>
             <p>Due: ${taskDateTime.toLocaleString()}</p>
             <p>Priority: ${taskPriority}</p>
+            <label>
+                <input type="checkbox" class="task-complete-checkbox"> Done
+            </label>
         `;
         document.getElementById("tasks").appendChild(taskCard);
 
@@ -83,8 +103,56 @@ const addTask = (calendar) => {
             title: taskName,
             start: taskDateTime.toISOString()
         });
+
+        // Add event listener to the checkbox
+        taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
+            if (event.target.checked) {
+                taskCard.style.textDecoration = "line-through";
+            } else {
+                taskCard.style.textDecoration = "none";
+            }
+        });
     }
 };
+
+function displayTasks(tasks) {
+    const taskTable = document.createElement('table');
+    taskTable.innerHTML = `
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Completed</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tasks.map(task => `
+                <tr>
+                    <td>${task.id}</td>
+                    <td>${task.title}</td>
+                    <td>
+                        <label>
+                            <input type="checkbox" class="task-complete-checkbox" ${task.completed ? 'checked' : ''}> Done
+                        </label>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+    document.getElementById('tasks').appendChild(taskTable);
+
+    // Add event listeners to the checkboxes
+    taskTable.querySelectorAll(".task-complete-checkbox").forEach(checkbox => {
+        checkbox.addEventListener("change", (event) => {
+            const row = event.target.closest("tr");
+            if (event.target.checked) {
+                row.style.textDecoration = "line-through";
+            } else {
+                row.style.textDecoration = "none";
+            }
+        });
+    });
+}
 
 // // Fetch tasks from JSONPlaceholder and display them in a table
 // async function fetchTasks() {
