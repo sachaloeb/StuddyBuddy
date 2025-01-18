@@ -121,8 +121,8 @@ const addTask = (calendar) => {
             taskCard.className = "task-card";
             taskCard.innerHTML = `
                 <h3>${taskName}</h3>
-                <p>Start: ${startDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}</p>
-                <p>End: ${endDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}</p>
+                <p>Start: ${startDateTime.toISOString().split('T')[0]} ${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}</p>
+                <p>End: ${endDateTime.toISOString().split('T')[0]} ${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}</p>
                 <p>Priority: ${taskPriority}</p>
                 <label>
                     <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
@@ -134,14 +134,12 @@ const addTask = (calendar) => {
             `;
             document.getElementById("tasks").appendChild(taskCard);
 
-            // Add the new task to the calendar and store the event ID
             const calendarEvent = calendar.addEvent({
                 title: taskName,
                 start: startDateTime.toISOString(),
                 end: endDateTime.toISOString()
             });
 
-            // Add event listener to the checkbox
             taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
                 if (event.target.checked) {
                     taskCard.style.textDecoration = "line-through";
@@ -150,7 +148,6 @@ const addTask = (calendar) => {
                 }
             });
 
-            // Add event listener to the edit button
             taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
                 const taskName = taskCard.querySelector("h3").textContent;
                 const startDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Start: ')[1];
@@ -162,7 +159,6 @@ const addTask = (calendar) => {
                 showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
             });
 
-            // Add event listener to the delete button
             taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
                 showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
                     if (response && response.toLowerCase() === 'yes') {
@@ -174,6 +170,57 @@ const addTask = (calendar) => {
         }
     }, true, formContent);
 };
+
+function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
+    const formContent = `
+        <form id="editTaskForm">
+            <label for="editTaskName">Task Name:</label>
+            <input type="text" id="editTaskName" name="taskName" value="${taskName}">
+            <label for="editTaskStartDate">Start Date (YYYY-MM-DD):</label>
+            <input type="date" id="editTaskStartDate" name="taskStartDate" value="${startDateTime.toISOString().split('T')[0]}">
+            <label for="editTaskStartTime">Start Time (HH:MM):</label>
+            <input type="time" id="editTaskStartTime" name="taskStartTime" value="${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+            <label for="editTaskEndDate">End Date (YYYY-MM-DD):</label>
+            <input type="date" id="editTaskEndDate" name="taskEndDate" value="${endDateTime.toISOString().split('T')[0]}">
+            <label for="editTaskEndTime">End Time (HH:MM):</label>
+            <input type="time" id="editTaskEndTime" name="taskEndTime" value="${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+            <label for="editTaskPriority">Priority:</label>
+            <select id="editTaskPriority" name="taskPriority">
+                <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
+                <option value="Medium" ${taskPriority === 'Medium' ? 'selected' : ''}>Medium</option>
+                <option value="Low" ${taskPriority === 'Low' ? 'selected' : ''}>Low</option>
+            </select>
+        </form>
+    `;
+
+    showCustomPrompt("Edit Task", (formData) => {
+        if (formData) {
+            const newTaskName = formData.get('taskName');
+            const newTaskStartDate = formData.get('taskStartDate');
+            const newTaskStartTime = formData.get('taskStartTime');
+            const newTaskEndDate = formData.get('taskEndDate');
+            const newTaskEndTime = formData.get('taskEndTime');
+            const newTaskPriority = formData.get('taskPriority');
+
+            const [startHours, startMinutes] = newTaskStartTime.split(':').map(Number);
+            const [endHours, endMinutes] = newTaskEndTime.split(':').map(Number);
+            const newStartDateTime = new Date(newTaskStartDate);
+            const newEndDateTime = new Date(newTaskEndDate);
+
+            newStartDateTime.setHours(startHours, startMinutes, 0, 0);
+            newEndDateTime.setHours(endHours, endMinutes, 0, 0);
+
+            taskCard.querySelector("h3").textContent = newTaskName;
+            taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toISOString().split('T')[0]} ${newStartDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
+            taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toISOString().split('T')[0]} ${newEndDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
+            taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
+
+            calendarEvent.setProp('title', newTaskName);
+            calendarEvent.setStart(newStartDateTime.toISOString());
+            calendarEvent.setEnd(newEndDateTime.toISOString());
+        }
+    }, true, formContent);
+}
 
 function displayTasks(tasks) {
     const taskTable = document.createElement('table');
@@ -318,56 +365,4 @@ function showCustomPrompt(message, callback, isForm = false, formContent = '') {
     promptOk.addEventListener('click', onOk);
     promptCancel.addEventListener('click', onCancel);
     closePrompt.addEventListener('click', closePromptModal);
-}
-
-function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
-    const formContent = `
-        <form id="editTaskForm">
-            <label for="editTaskName">Task Name:</label>
-            <input type="text" id="editTaskName" name="taskName" value="${taskName}">
-            <label for="editTaskStartDate">Start Date (YYYY-MM-DD):</label>
-            <input type="date" id="editTaskStartDate" name="taskStartDate" value="${startDateTime.toISOString().split('T')[0]}">
-            <label for="editTaskStartTime">Start Time (HH:MM):</label>
-            <input type="time" id="editTaskStartTime" name="taskStartTime" value="${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
-            <label for="editTaskEndDate">End Date (YYYY-MM-DD):</label>
-            <input type="date" id="editTaskEndDate" name="taskEndDate" value="${endDateTime.toISOString().split('T')[0]}">
-            <label for="editTaskEndTime">End Time (HH:MM):</label>
-            <input type="time" id="editTaskEndTime" name="taskEndTime" value="${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
-            <label for="editTaskPriority">Priority:</label>
-            <select id="editTaskPriority" name="taskPriority">
-                <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
-                <option value="Medium" ${taskPriority === 'Medium' ? 'selected' : ''}>Medium</option>
-                <option value="Low" ${taskPriority === 'Low' ? 'selected' : ''}>Low</option>
-            </select>
-        </form>
-    `;
-
-    showCustomPrompt("Edit Task", (formData) => {
-        if (formData) {
-            const newTaskName = formData.get('taskName');
-            const newTaskStartDate = formData.get('taskStartDate');
-            const newTaskStartTime = formData.get('taskStartTime');
-            const newTaskEndDate = formData.get('taskEndDate');
-            const newTaskEndTime = formData.get('taskEndTime');
-            const newTaskPriority = formData.get('taskPriority');
-
-            const [startHours, startMinutes] = newTaskStartTime.split(':').map(Number);
-            const [endHours, endMinutes] = newTaskEndTime.split(':').map(Number);
-            const newStartDateTime = new Date(newTaskStartDate);
-            const newEndDateTime = new Date(newTaskEndDate);
-
-            newStartDateTime.setHours(startHours, startMinutes, 0, 0);
-            newEndDateTime.setHours(endHours, endMinutes, 0, 0);
-
-            taskCard.querySelector("h3").textContent = newTaskName;
-            taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
-            taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
-            taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
-
-            // Update the calendar event
-            calendarEvent.setProp('title', newTaskName);
-            calendarEvent.setStart(newStartDateTime.toISOString());
-            calendarEvent.setEnd(newEndDateTime.toISOString());
-        }
-    }, true, formContent);
 }
