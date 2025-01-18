@@ -111,8 +111,8 @@ const addTask = (calendar) => {
                     `;
                     document.getElementById("tasks").appendChild(taskCard);
 
-                    // Add the new task to the calendar
-                    calendar.addEvent({
+                    // Add the new task to the calendar and store the event ID
+                    const calendarEvent = calendar.addEvent({
                         title: taskName,
                         start: taskDateTime.toISOString()
                     });
@@ -133,7 +133,7 @@ const addTask = (calendar) => {
                         const taskDateTime = new Date(taskDateTimeText);
                         const taskPriority = taskCard.querySelector("p:nth-of-type(2)").textContent.split('Priority: ')[1];
 
-                        showEditForm(taskCard, taskName, taskDateTime, taskPriority);
+                        showEditForm(taskCard, taskName, taskDateTime, taskPriority, calendarEvent);
                     });
 
                     // Add event listener to the delete button
@@ -141,6 +141,7 @@ const addTask = (calendar) => {
                         showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
                             if (response && response.toLowerCase() === 'yes') {
                                 taskCard.remove();
+                                calendarEvent.remove();
                             }
                         });
                     });
@@ -295,7 +296,7 @@ function showCustomPrompt(message, callback, isForm = false, formContent = '') {
     closePrompt.addEventListener('click', closePromptModal);
 }
 
-function showEditForm(taskCard, taskName, taskDateTime, taskPriority) {
+function showEditForm(taskCard, taskName, taskDateTime, taskPriority, calendarEvent) {
     const formContent = `
         <form id="editTaskForm">
             <label for="editTaskName">Task Name:</label>
@@ -327,6 +328,10 @@ function showEditForm(taskCard, taskName, taskDateTime, taskPriority) {
             taskCard.querySelector("h3").textContent = newTaskName;
             taskCard.querySelector("p:nth-of-type(1)").textContent = `Due: ${newTaskDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
             taskCard.querySelector("p:nth-of-type(2)").textContent = `Priority: ${newTaskPriority}`;
+
+            // Update the calendar event
+            calendarEvent.setProp('title', newTaskName);
+            calendarEvent.setStart(newTaskDateTime.toISOString());
         }
     }, true, formContent);
 }
