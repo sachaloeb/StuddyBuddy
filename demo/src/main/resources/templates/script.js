@@ -128,10 +128,12 @@ const addTask = (calendar) => {
 
                     // Add event listener to the edit button
                     taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
-                        const newTaskName = prompt("Edit task name:", taskName);
-                        if (newTaskName) {
-                            taskCard.querySelector("h3").textContent = newTaskName;
-                        }
+                        const taskName = taskCard.querySelector("h3").textContent;
+                        const taskDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Due: ')[1];
+                        const taskDateTime = new Date(taskDateTimeText);
+                        const taskPriority = taskCard.querySelector("p:nth-of-type(2)").textContent.split('Priority: ')[1];
+
+                        showEditForm(taskCard, taskName, taskDateTime, taskPriority);
                     });
 
                     // Add event listener to the delete button
@@ -254,16 +256,19 @@ function displayWelcomeMessage(name) {
 }
 
 
-function showCustomPrompt(message, callback) {
+function showCustomPrompt(message, callback, isForm = false, formContent = '') {
     const customPrompt = document.getElementById('customPrompt');
     const promptMessage = document.getElementById('promptMessage');
     const promptInput = document.getElementById('promptInput');
+    const formContainer = document.getElementById('formContainer');
     const promptOk = document.getElementById('promptOk');
     const promptCancel = document.getElementById('promptCancel');
     const closePrompt = document.getElementById('closePrompt');
 
     promptMessage.textContent = message;
     promptInput.value = '';
+    promptInput.style.display = isForm ? 'none' : 'block';
+    formContainer.innerHTML = isForm ? formContent : '';
 
     customPrompt.style.display = 'flex';
 
@@ -275,9 +280,9 @@ function showCustomPrompt(message, callback) {
     }
 
     function onOk() {
-        console.log(`OK clicked with value: ${promptInput.value}`);
+        const formData = isForm ? new FormData(customPrompt.querySelector('form')) : promptInput.value;
         closePromptModal();
-        callback(promptInput.value);
+        callback(formData);
     }
 
     function onCancel() {
