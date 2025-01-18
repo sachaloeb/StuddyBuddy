@@ -74,81 +74,105 @@ function generateTimetable() {
 }
 
 const addTask = (calendar) => {
-    showCustomPrompt("Enter task name:", (taskName) => {
-        if (!taskName) return;
+    const formContent = `
+        <form id="addTaskForm">
+            <label for="taskName">Task Name:</label>
+            <input type="text" id="taskName" name="taskName" required>
+            <label for="startDate">Start Date (YYYY-MM-DD):</label>
+            <input type="date" id="startDate" name="startDate" required>
+            <label for="startTime">Start Time (HH:MM):</label>
+            <input type="time" id="startTime" name="startTime" required>
+            <label for="endDate">End Date (YYYY-MM-DD):</label>
+            <input type="date" id="endDate" name="endDate" required>
+            <label for="endTime">End Time (HH:MM):</label>
+            <input type="time" id="endTime" name="endTime" required>
+            <label for="taskPriority">Priority:</label>
+            <select id="taskPriority" name="taskPriority" required>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </form>
+    `;
 
-        showCustomPrompt("Enter due date (YYYY-MM-DD):", (taskDueDate) => {
-            if (!taskDueDate) return;
+    showCustomPrompt("Add Task", (formData) => {
+        if (formData) {
+            const taskName = formData.get('taskName');
+            const startDate = formData.get('startDate');
+            const startTime = formData.get('startTime');
+            const endDate = formData.get('endDate');
+            const endTime = formData.get('endTime');
+            const taskPriority = formData.get('taskPriority');
 
-            showCustomPrompt("Enter due time (HH:MM):", (taskDueTime) => {
-                if (!taskDueTime) return;
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
+            const [endHours, endMinutes] = endTime.split(':').map(Number);
+            const startDateTime = new Date(startDate);
+            const endDateTime = new Date(endDate);
 
-                showCustomPrompt("Enter priority (High, Medium, Low):", (taskPriority) => {
-                    if (!taskPriority) return;
+            startDateTime.setHours(startHours, startMinutes, 0, 0);
+            endDateTime.setHours(endHours, endMinutes, 0, 0);
 
-                    const [hours, minutes] = taskDueTime.split(':').map(Number);
-                    const taskDateTime = new Date(taskDueDate);
-                    taskDateTime.setHours(hours, minutes, 0, 0);
+            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+                alert("Invalid date or time format. Please try again.");
+                return;
+            }
 
-                    if (isNaN(taskDateTime.getTime())) {
-                        alert("Invalid date or time format. Please try again.");
-                        return;
+            const taskCard = document.createElement("div");
+            taskCard.className = "task-card";
+            taskCard.innerHTML = `
+                <h3>${taskName}</h3>
+                <p>Start: ${startDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}</p>
+                <p>End: ${endDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}</p>
+                <p>Priority: ${taskPriority}</p>
+                <label>
+                    <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
+                </label>
+                <div class="task-buttons">
+                    <button class="edit-task-button">Edit</button>
+                    <button class="delete-task-button">Delete</button>
+                </div>
+            `;
+            document.getElementById("tasks").appendChild(taskCard);
+
+            // Add the new task to the calendar and store the event ID
+            const calendarEvent = calendar.addEvent({
+                title: taskName,
+                start: startDateTime.toISOString(),
+                end: endDateTime.toISOString()
+            });
+
+            // Add event listener to the checkbox
+            taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
+                if (event.target.checked) {
+                    taskCard.style.textDecoration = "line-through";
+                } else {
+                    taskCard.style.textDecoration = "none";
+                }
+            });
+
+            // Add event listener to the edit button
+            taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
+                const taskName = taskCard.querySelector("h3").textContent;
+                const startDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Start: ')[1];
+                const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
+                const startDateTime = new Date(startDateTimeText);
+                const endDateTime = new Date(endDateTimeText);
+                const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
+
+                showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
+            });
+
+            // Add event listener to the delete button
+            taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
+                showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
+                    if (response && response.toLowerCase() === 'yes') {
+                        taskCard.remove();
+                        calendarEvent.remove();
                     }
-
-                    const taskCard = document.createElement("div");
-                    taskCard.className = "task-card";
-                    taskCard.innerHTML = `
-                        <h3>${taskName}</h3>
-                        <p>Due: ${taskDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}</p>
-                        <p>Priority: ${taskPriority}</p>
-                        <label>
-                            <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
-                        </label>
-                        <div class="task-buttons">
-                            <button class="edit-task-button">Edit</button>
-                            <button class="delete-task-button">Delete</button>
-                        </div>
-                    `;
-                    document.getElementById("tasks").appendChild(taskCard);
-
-                    // Add the new task to the calendar and store the event ID
-                    const calendarEvent = calendar.addEvent({
-                        title: taskName,
-                        start: taskDateTime.toISOString()
-                    });
-
-                    // Add event listener to the checkbox
-                    taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
-                        if (event.target.checked) {
-                            taskCard.style.textDecoration = "line-through";
-                        } else {
-                            taskCard.style.textDecoration = "none";
-                        }
-                    });
-
-                    // Add event listener to the edit button
-                    taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
-                        const taskName = taskCard.querySelector("h3").textContent;
-                        const taskDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Due: ')[1];
-                        const taskDateTime = new Date(taskDateTimeText);
-                        const taskPriority = taskCard.querySelector("p:nth-of-type(2)").textContent.split('Priority: ')[1];
-
-                        showEditForm(taskCard, taskName, taskDateTime, taskPriority, calendarEvent);
-                    });
-
-                    // Add event listener to the delete button
-                    taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
-                        showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
-                            if (response && response.toLowerCase() === 'yes') {
-                                taskCard.remove();
-                                calendarEvent.remove();
-                            }
-                        });
-                    });
                 });
             });
-        });
-    });
+        }
+    }, true, formContent);
 };
 
 function displayTasks(tasks) {
@@ -296,15 +320,19 @@ function showCustomPrompt(message, callback, isForm = false, formContent = '') {
     closePrompt.addEventListener('click', closePromptModal);
 }
 
-function showEditForm(taskCard, taskName, taskDateTime, taskPriority, calendarEvent) {
+function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
     const formContent = `
         <form id="editTaskForm">
             <label for="editTaskName">Task Name:</label>
             <input type="text" id="editTaskName" name="taskName" value="${taskName}">
-            <label for="editTaskDueDate">Due Date (YYYY-MM-DD):</label>
-            <input type="date" id="editTaskDueDate" name="taskDueDate" value="${taskDateTime.toISOString().split('T')[0]}">
-            <label for="editTaskDueTime">Due Time (HH:MM):</label>
-            <input type="time" id="editTaskDueTime" name="taskDueTime" value="${taskDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+            <label for="editTaskStartDate">Start Date (YYYY-MM-DD):</label>
+            <input type="date" id="editTaskStartDate" name="taskStartDate" value="${startDateTime.toISOString().split('T')[0]}">
+            <label for="editTaskStartTime">Start Time (HH:MM):</label>
+            <input type="time" id="editTaskStartTime" name="taskStartTime" value="${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+            <label for="editTaskEndDate">End Date (YYYY-MM-DD):</label>
+            <input type="date" id="editTaskEndDate" name="taskEndDate" value="${endDateTime.toISOString().split('T')[0]}">
+            <label for="editTaskEndTime">End Time (HH:MM):</label>
+            <input type="time" id="editTaskEndTime" name="taskEndTime" value="${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
             <label for="editTaskPriority">Priority:</label>
             <select id="editTaskPriority" name="taskPriority">
                 <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
@@ -317,21 +345,29 @@ function showEditForm(taskCard, taskName, taskDateTime, taskPriority, calendarEv
     showCustomPrompt("Edit Task", (formData) => {
         if (formData) {
             const newTaskName = formData.get('taskName');
-            const newTaskDueDate = formData.get('taskDueDate');
-            const newTaskDueTime = formData.get('taskDueTime');
+            const newTaskStartDate = formData.get('taskStartDate');
+            const newTaskStartTime = formData.get('taskStartTime');
+            const newTaskEndDate = formData.get('taskEndDate');
+            const newTaskEndTime = formData.get('taskEndTime');
             const newTaskPriority = formData.get('taskPriority');
 
-            const [hours, minutes] = newTaskDueTime.split(':').map(Number);
-            const newTaskDateTime = new Date(newTaskDueDate);
-            newTaskDateTime.setHours(hours, minutes, 0, 0);
+            const [startHours, startMinutes] = newTaskStartTime.split(':').map(Number);
+            const [endHours, endMinutes] = newTaskEndTime.split(':').map(Number);
+            const newStartDateTime = new Date(newTaskStartDate);
+            const newEndDateTime = new Date(newTaskEndDate);
+
+            newStartDateTime.setHours(startHours, startMinutes, 0, 0);
+            newEndDateTime.setHours(endHours, endMinutes, 0, 0);
 
             taskCard.querySelector("h3").textContent = newTaskName;
-            taskCard.querySelector("p:nth-of-type(1)").textContent = `Due: ${newTaskDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
-            taskCard.querySelector("p:nth-of-type(2)").textContent = `Priority: ${newTaskPriority}`;
+            taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
+            taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
+            taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
 
             // Update the calendar event
             calendarEvent.setProp('title', newTaskName);
-            calendarEvent.setStart(newTaskDateTime.toISOString());
+            calendarEvent.setStart(newStartDateTime.toISOString());
+            calendarEvent.setEnd(newEndDateTime.toISOString());
         }
     }, true, formContent);
 }
