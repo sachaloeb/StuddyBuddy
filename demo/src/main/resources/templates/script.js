@@ -54,8 +54,68 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add event listener for adding a new task
     document.getElementById("addTaskButton").addEventListener("click", () => addTask(calendar));
 
-    // Generate the study timetable
-    generateTimetable();
+    // Load tasks from local storage and display them
+    tasks.forEach(task => {
+        const taskCard = document.createElement("div");
+        taskCard.className = "task-card";
+        taskCard.innerHTML = `
+            <h3>${task.name}</h3>
+            <p>Start: ${new Date(task.start).toLocaleString()}</p>
+            <p>End: ${new Date(task.end).toLocaleString()}</p>
+            <p>Priority: ${task.priority}</p>
+            <label>
+                <input type="checkbox" class="task-complete-checkbox" ${task.completed ? 'checked' : ''}> Done
+            </label>
+            <div class="task-buttons">
+                <button class="edit-task-button">Edit</button>
+                <button class="delete-task-button">Delete</button>
+            </div>
+        `;
+        document.getElementById("tasks").appendChild(taskCard);
+
+        const calendarEvent = calendar.addEvent({
+            title: task.name,
+            start: task.start,
+            end: task.end
+        });
+
+        taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
+            task.completed = event.target.checked;
+            saveTasksToLocalStorage(tasks);
+            if (event.target.checked) {
+                taskCard.style.textDecoration = "line-through";
+            } else {
+                taskCard.style.textDecoration = "none";
+            }
+        });
+
+        taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
+            const taskName = taskCard.querySelector("h3").textContent;
+            const startDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Start: ')[1];
+            const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
+            const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
+
+            const startDateTime = new Date(Date.parse(startDateTimeText));
+            const endDateTime = new Date(Date.parse(endDateTimeText));
+
+            if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
+                showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
+            } else {
+                alert("Invalid date or time format. Please try again.");
+            }
+        });
+
+        taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
+            showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
+                if (response && response.toLowerCase() === 'yes') {
+                    taskCard.remove();
+                    calendarEvent.remove();
+                    tasks = tasks.filter(t => t.id !== task.id);
+                    saveTasksToLocalStorage(tasks);
+                }
+            });
+        });
+    });
 });
 
 function setupTaskTracking() {
@@ -73,6 +133,84 @@ function generateTimetable() {
     // Example: Add logic to populate the timetable with study sessions
 }
 
+// Function to save tasks to local storage
+function saveTasksToLocalStorage(tasks) {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Function to load tasks from local storage
+function loadTasksFromLocalStorage() {
+    const tasks = localStorage.getItem('tasks');
+    return tasks ? JSON.parse(tasks) : [];
+}
+
+// Initialize tasks array
+let tasks = loadTasksFromLocalStorage();
+
+// Function to add a task to the DOM
+function addTaskToDOM(task, calendar) {
+    const taskCard = document.createElement("div");
+    taskCard.className = "task-card";
+    taskCard.innerHTML = `
+        <h3>${task.name}</h3>
+        <p>Start: ${new Date(task.start).toLocaleString()}</p>
+        <p>End: ${new Date(task.end).toLocaleString()}</p>
+        <p>Priority: ${task.priority}</p>
+        <label>
+            <input type="checkbox" class="task-complete-checkbox" ${task.completed ? 'checked' : ''}> Done
+        </label>
+        <div class="task-buttons">
+            <button class="edit-task-button">Edit</button>
+            <button class="delete-task-button">Delete</button>
+        </div>
+    `;
+    document.getElementById("tasks").appendChild(taskCard);
+
+    const calendarEvent = calendar.addEvent({
+        title: task.name,
+        start: task.start,
+        end: task.end
+    });
+
+    taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
+        task.completed = event.target.checked;
+        saveTasksToLocalStorage(tasks);
+        if (event.target.checked) {
+            taskCard.style.textDecoration = "line-through";
+        } else {
+            taskCard.style.textDecoration = "none";
+        }
+    });
+
+    taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
+        const taskName = taskCard.querySelector("h3").textContent;
+        const startDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Start: ')[1];
+        const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
+        const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
+
+        const startDateTime = new Date(Date.parse(startDateTimeText));
+        const endDateTime = new Date(Date.parse(endDateTimeText));
+
+        if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
+            showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
+        } else {
+            alert("Invalid date or time format. Please try again.");
+        }
+    });
+
+    taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
+        showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
+            if (response && response.toLowerCase() === 'yes') {
+                taskCard.remove();
+                calendarEvent.remove();
+                tasks = tasks.filter(t => t.id !== task.id);
+                saveTasksToLocalStorage(tasks);
+            }
+        });
+    });
+}
+
+// Update addTask function to save the new task to local storage and add it to the DOM
 const addTask = (calendar) => {
     const formContent = `
         <form id="addTaskForm">
@@ -112,61 +250,30 @@ const addTask = (calendar) => {
                 return;
             }
 
-            const taskCard = document.createElement("div");
-            taskCard.className = "task-card";
-            taskCard.innerHTML = `
-                <h3>${taskName}</h3>
-                <p>Start: ${startDate} ${startTime}</p>
-                <p>End: ${endDate} ${endTime}</p>
-                <p>Priority: ${taskPriority}</p>
-                <label>
-                    <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
-                </label>
-                <div class="task-buttons">
-                    <button class="edit-task-button">Edit</button>
-                    <button class="delete-task-button">Delete</button>
-                </div>
-            `;
-            document.getElementById("tasks").appendChild(taskCard);
-
-            const calendarEvent = calendar.addEvent({
-                title: taskName,
+            const task = {
+                id: Date.now(),
+                name: taskName,
                 start: startDateTime.toISOString(),
-                end: endDateTime.toISOString()
-            });
+                end: endDateTime.toISOString(),
+                priority: taskPriority,
+                completed: false
+            };
 
-            taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
-                if (event.target.checked) {
-                    taskCard.style.textDecoration = "line-through";
-                } else {
-                    taskCard.style.textDecoration = "none";
-                }
-            });
-
-            taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
-                const taskName = taskCard.querySelector("h3").textContent;
-                const startDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Start: ')[1];
-                const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
-                const startDateTime = new Date(startDateTimeText);
-                const endDateTime = new Date(endDateTimeText);
-                const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
-
-                showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
-            });
-
-            taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
-                showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
-                    if (response && response.toLowerCase() === 'yes') {
-                        taskCard.remove();
-                        calendarEvent.remove();
-                    }
-                });
-            });
+            tasks.push(task);
+            saveTasksToLocalStorage(tasks);
+            addTaskToDOM(task, calendar);
         }
     }, true, formContent);
 };
 
+
 function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
+    console.log("showEditForm called");
+    console.log("taskName:", taskName);
+    console.log("startDateTime:", startDateTime);
+    console.log("endDateTime:", endDateTime);
+    console.log("taskPriority:", taskPriority);
+
     const formContent = `
         <form id="editTaskForm">
             <label for="editTaskName">Task Name:</label>
@@ -188,6 +295,8 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
         </form>
     `;
 
+    console.log("formContent:", formContent);
+
     showCustomPrompt("Edit Task", (formData) => {
         if (formData) {
             const newTaskName = formData.get('taskName');
@@ -197,22 +306,28 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
             const newTaskEndTime = formData.get('taskEndTime');
             const newTaskPriority = formData.get('taskPriority');
 
+            console.log("formData:", formData);
+
             const [startHours, startMinutes] = newTaskStartTime.split(':').map(Number);
             const [endHours, endMinutes] = newTaskEndTime.split(':').map(Number);
-            const newStartDateTime = new Date(newTaskStartDate);
-            const newEndDateTime = new Date(newTaskEndDate);
+            const newStartDateTime = new Date(`${newTaskStartDate}T${newTaskStartTime}`);
+            const newEndDateTime = new Date(`${newTaskEndDate}T${newTaskEndTime}`);
 
-            newStartDateTime.setHours(startHours, startMinutes, 0, 0);
-            newEndDateTime.setHours(endHours, endMinutes, 0, 0);
+            if (!isNaN(newStartDateTime.getTime()) && !isNaN(newEndDateTime.getTime())) {
+                newStartDateTime.setHours(startHours, startMinutes, 0, 0);
+                newEndDateTime.setHours(endHours, endMinutes, 0, 0);
 
-            taskCard.querySelector("h3").textContent = newTaskName;
-            taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toISOString().split('T')[0]} ${newStartDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
-            taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toISOString().split('T')[0]} ${newEndDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
-            taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
+                taskCard.querySelector("h3").textContent = newTaskName;
+                taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toISOString().split('T')[0]} ${newStartDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
+                taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toISOString().split('T')[0]} ${newEndDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
+                taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
 
-            calendarEvent.setProp('title', newTaskName);
-            calendarEvent.setStart(newStartDateTime.toISOString());
-            calendarEvent.setEnd(newEndDateTime.toISOString());
+                calendarEvent.setProp('title', newTaskName);
+                calendarEvent.setStart(newStartDateTime.toISOString());
+                calendarEvent.setEnd(newEndDateTime.toISOString());
+            } else {
+                alert("Invalid date or time format. Please try again.");
+            }
         }
     }, true, formContent);
 }
