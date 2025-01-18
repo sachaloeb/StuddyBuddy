@@ -104,13 +104,8 @@ const addTask = (calendar) => {
             const endTime = formData.get('endTime');
             const taskPriority = formData.get('taskPriority');
 
-            const [startHours, startMinutes] = startTime.split(':').map(Number);
-            const [endHours, endMinutes] = endTime.split(':').map(Number);
-            const startDateTime = new Date(startDate);
-            const endDateTime = new Date(endDate);
-
-            startDateTime.setHours(startHours, startMinutes, 0, 0);
-            endDateTime.setHours(endHours, endMinutes, 0, 0);
+            const startDateTime = new Date(`${startDate}T${startTime}`);
+            const endDateTime = new Date(`${endDate}T${endTime}`);
 
             if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
                 alert("Invalid date or time format. Please try again.");
@@ -121,8 +116,8 @@ const addTask = (calendar) => {
             taskCard.className = "task-card";
             taskCard.innerHTML = `
                 <h3>${taskName}</h3>
-                <p>Start: ${startDateTime.toISOString().split('T')[0]} ${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}</p>
-                <p>End: ${endDateTime.toISOString().split('T')[0]} ${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}</p>
+                <p>Start: ${startDate} ${startTime}</p>
+                <p>End: ${endDate} ${endTime}</p>
                 <p>Priority: ${taskPriority}</p>
                 <label>
                     <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
