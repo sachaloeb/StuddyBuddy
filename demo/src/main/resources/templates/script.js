@@ -90,11 +90,6 @@ const addTask = (calendar) => {
                     const taskDateTime = new Date(taskDueDate);
                     taskDateTime.setHours(hours, minutes, 0, 0);
 
-                    console.log(`Task Name: ${taskName}`);
-                    console.log(`Task Due Date: ${taskDueDate}`);
-                    console.log(`Task Due Time: ${taskDueTime}`);
-                    console.log(`Parsed DateTime: ${taskDateTime.toISOString()}`);
-
                     if (isNaN(taskDateTime.getTime())) {
                         alert("Invalid date or time format. Please try again.");
                         return;
@@ -109,6 +104,10 @@ const addTask = (calendar) => {
                         <label>
                             <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox"> Done
                         </label>
+                        <div class="task-buttons">
+                            <button class="edit-task-button">Edit</button>
+                            <button class="delete-task-button">Delete</button>
+                        </div>
                     `;
                     document.getElementById("tasks").appendChild(taskCard);
 
@@ -125,6 +124,23 @@ const addTask = (calendar) => {
                         } else {
                             taskCard.style.textDecoration = "none";
                         }
+                    });
+
+                    // Add event listener to the edit button
+                    taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
+                        const newTaskName = prompt("Edit task name:", taskName);
+                        if (newTaskName) {
+                            taskCard.querySelector("h3").textContent = newTaskName;
+                        }
+                    });
+
+                    // Add event listener to the delete button
+                    taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
+                        showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
+                            if (response && response.toLowerCase() === 'yes') {
+                                taskCard.remove();
+                            }
+                        });
                     });
                 });
             });
@@ -250,14 +266,12 @@ function showCustomPrompt(message, callback) {
     promptInput.value = '';
 
     customPrompt.style.display = 'flex';
-    console.log(`Prompt displayed: ${message}`);
 
     function closePromptModal() {
         customPrompt.style.display = 'none';
         promptOk.removeEventListener('click', onOk);
         promptCancel.removeEventListener('click', onCancel);
         closePrompt.removeEventListener('click', closePromptModal);
-        console.log('Prompt closed');
     }
 
     function onOk() {
@@ -267,7 +281,6 @@ function showCustomPrompt(message, callback) {
     }
 
     function onCancel() {
-        console.log('Cancel clicked');
         closePromptModal();
         callback(null);
     }
@@ -275,4 +288,40 @@ function showCustomPrompt(message, callback) {
     promptOk.addEventListener('click', onOk);
     promptCancel.addEventListener('click', onCancel);
     closePrompt.addEventListener('click', closePromptModal);
+}
+
+function showEditForm(taskCard, taskName, taskDateTime, taskPriority) {
+    const formContent = `
+        <form id="editTaskForm">
+            <label for="editTaskName">Task Name:</label>
+            <input type="text" id="editTaskName" name="taskName" value="${taskName}">
+            <label for="editTaskDueDate">Due Date (YYYY-MM-DD):</label>
+            <input type="date" id="editTaskDueDate" name="taskDueDate" value="${taskDateTime.toISOString().split('T')[0]}">
+            <label for="editTaskDueTime">Due Time (HH:MM):</label>
+            <input type="time" id="editTaskDueTime" name="taskDueTime" value="${taskDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+            <label for="editTaskPriority">Priority:</label>
+            <select id="editTaskPriority" name="taskPriority">
+                <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
+                <option value="Medium" ${taskPriority === 'Medium' ? 'selected' : ''}>Medium</option>
+                <option value="Low" ${taskPriority === 'Low' ? 'selected' : ''}>Low</option>
+            </select>
+        </form>
+    `;
+
+    showCustomPrompt("Edit Task", (formData) => {
+        if (formData) {
+            const newTaskName = formData.get('taskName');
+            const newTaskDueDate = formData.get('taskDueDate');
+            const newTaskDueTime = formData.get('taskDueTime');
+            const newTaskPriority = formData.get('taskPriority');
+
+            const [hours, minutes] = newTaskDueTime.split(':').map(Number);
+            const newTaskDateTime = new Date(newTaskDueDate);
+            newTaskDateTime.setHours(hours, minutes, 0, 0);
+
+            taskCard.querySelector("h3").textContent = newTaskName;
+            taskCard.querySelector("p:nth-of-type(1)").textContent = `Due: ${newTaskDateTime.toLocaleString('en-US', { timeZone: 'UTC', hour12: false })}`;
+            taskCard.querySelector("p:nth-of-type(2)").textContent = `Priority: ${newTaskPriority}`;
+        }
+    }, true, formContent);
 }
