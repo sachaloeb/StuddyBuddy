@@ -95,8 +95,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
             const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
 
-            const startDateTime = new Date(Date.parse(startDateTimeText));
-            const endDateTime = new Date(Date.parse(endDateTimeText));
+            const startDateTime = moment(startDateTimeText, "DD/MM/YYYY, HH:mm:ss").toDate();
+            const endDateTime = moment(endDateTimeText, "DD/MM/YYYY, HH:mm:ss").toDate();
 
             if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
                 showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
@@ -151,6 +151,8 @@ let tasks = loadTasksFromLocalStorage();
 function addTaskToDOM(task, calendar) {
     const taskCard = document.createElement("div");
     taskCard.className = "task-card";
+    console.log("Task ID:", task.id);
+    taskCard.dataset.taskId = task.id; // Set the task ID
     taskCard.innerHTML = `
         <h3>${task.name}</h3>
         <p>Start: ${new Date(task.start).toLocaleString()}</p>
@@ -188,8 +190,8 @@ function addTaskToDOM(task, calendar) {
         const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
         const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
 
-        const startDateTime = new Date(Date.parse(startDateTimeText));
-        const endDateTime = new Date(Date.parse(endDateTimeText));
+        const startDateTime = moment(startDateTimeText, "DD/MM/YYYY, HH:mm:ss").toDate();
+        const endDateTime = moment(endDateTimeText, "DD/MM/YYYY, HH:mm:ss").toDate();
 
         if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
             showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
@@ -251,7 +253,7 @@ const addTask = (calendar) => {
             }
 
             const task = {
-                id: Date.now(),
+                id: crypto.randomUUID(),
                 name: taskName,
                 start: startDateTime.toISOString(),
                 end: endDateTime.toISOString(),
@@ -261,6 +263,7 @@ const addTask = (calendar) => {
 
             tasks.push(task);
             saveTasksToLocalStorage(tasks);
+            console.log("Tasks saved to localStorage:", tasks);
             addTaskToDOM(task, calendar);
         }
     }, true, formContent);
@@ -268,12 +271,6 @@ const addTask = (calendar) => {
 
 
 function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
-    console.log("showEditForm called");
-    console.log("taskName:", taskName);
-    console.log("startDateTime:", startDateTime);
-    console.log("endDateTime:", endDateTime);
-    console.log("taskPriority:", taskPriority);
-
     const formContent = `
         <form id="editTaskForm">
             <label for="editTaskName">Task Name:</label>
@@ -295,8 +292,7 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
         </form>
     `;
 
-    console.log("formContent:", formContent);
-
+    console.log("Tasks before edit:", tasks);
     showCustomPrompt("Edit Task", (formData) => {
         if (formData) {
             const newTaskName = formData.get('taskName');
@@ -306,31 +302,51 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
             const newTaskEndTime = formData.get('taskEndTime');
             const newTaskPriority = formData.get('taskPriority');
 
-            console.log("formData:", formData);
-
-            const [startHours, startMinutes] = newTaskStartTime.split(':').map(Number);
-            const [endHours, endMinutes] = newTaskEndTime.split(':').map(Number);
             const newStartDateTime = new Date(`${newTaskStartDate}T${newTaskStartTime}`);
             const newEndDateTime = new Date(`${newTaskEndDate}T${newTaskEndTime}`);
 
             if (!isNaN(newStartDateTime.getTime()) && !isNaN(newEndDateTime.getTime())) {
-                newStartDateTime.setHours(startHours, startMinutes, 0, 0);
-                newEndDateTime.setHours(endHours, endMinutes, 0, 0);
-
+                // Update the DOM
                 taskCard.querySelector("h3").textContent = newTaskName;
-                taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toISOString().split('T')[0]} ${newStartDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
-                taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toISOString().split('T')[0]} ${newEndDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
+                taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toLocaleString()}`;
+                taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toLocaleString()}`;
                 taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
 
+                // Update the calendar event
                 calendarEvent.setProp('title', newTaskName);
-                calendarEvent.setStart(newStartDateTime.toISOString());
-                calendarEvent.setEnd(newEndDateTime.toISOString());
+                calendarEvent.setStart(newStartDateTime);
+                calendarEvent.setEnd(newEndDateTime);
+
+                // Find and update the task in the `tasks` array
+                let task;
+                const taskId = taskCard.dataset.taskId;
+                console.log("Task Card ID:", taskId);
+                if (taskId) {
+                    task = tasks.find(t => t.id === taskId); // Proceed only if the ID exists
+                    console.log(task); // Debug to ensure task is found
+                } else {
+                    console.log("Task ID is undefined.");
+                }
+                console.log("Task Card ID (raw):", taskCard.dataset.taskId);
+                console.log("All Tasks:", tasks);
+                if (task) {
+                    console.log("Task before update:", task);
+                    task.name = newTaskName;
+                    task.start = newStartDateTime.toISOString();
+                    task.end = newEndDateTime.toISOString();
+                    task.priority = newTaskPriority;
+                    console.log("Task after update:", task);
+                    // Save the updated tasks array to localStorage
+                    saveTasksToLocalStorage(tasks);
+                    console.log("Tasks saved to localStorage:", tasks);
+                }
             } else {
                 alert("Invalid date or time format. Please try again.");
             }
         }
     }, true, formContent);
 }
+
 
 function displayTasks(tasks) {
     const taskTable = document.createElement('table');
