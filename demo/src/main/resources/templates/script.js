@@ -212,8 +212,26 @@ function addTaskToDOM(task, calendar) {
     });
 }
 
-// Update addTask function to save the new task to local storage and add it to the DOM
-const addTask = (calendar) => {
+function validateTaskInputs(taskName, startDateTime, endDateTime) {
+    if (!taskName || taskName.trim() === "") {
+        alert("Task Name cannot be empty. Please enter a valid name.");
+        return false;
+    }
+
+    if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+        alert("Invalid date or time format. Please ensure all fields are correctly filled.");
+        return false;
+    }
+
+    if (endDateTime <= startDateTime) {
+        alert("End time must be later than start time. Please adjust your inputs.");
+        return false;
+    }
+
+    return true;
+}
+
+function addTask(calendar) {
     const formContent = `
         <form id="addTaskForm">
             <label for="taskName">Task Name:</label>
@@ -236,39 +254,41 @@ const addTask = (calendar) => {
     `;
 
     showCustomPrompt("Add Task", (formData) => {
-        if (formData) {
-            const taskName = formData.get('taskName');
-            const startDate = formData.get('startDate');
-            const startTime = formData.get('startTime');
-            const endDate = formData.get('endDate');
-            const endTime = formData.get('endTime');
-            const taskPriority = formData.get('taskPriority');
+        try {
+            if (formData) {
+                const taskName = formData.get('taskName');
+                const startDate = formData.get('startDate');
+                const startTime = formData.get('startTime');
+                const endDate = formData.get('endDate');
+                const endTime = formData.get('endTime');
+                const taskPriority = formData.get('taskPriority');
 
-            const startDateTime = new Date(`${startDate}T${startTime}`);
-            const endDateTime = new Date(`${endDate}T${endTime}`);
+                const startDateTime = new Date(`${startDate}T${startTime}`);
+                const endDateTime = new Date(`${endDate}T${endTime}`);
 
-            if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-                alert("Invalid date or time format. Please try again.");
-                return;
+                if (!validateTaskInputs(taskName, startDateTime, endDateTime)) {
+                    return; // Exit if validation fails
+                }
+
+                const task = {
+                    id: Date.now().toString(),
+                    name: taskName,
+                    start: startDateTime.toISOString(),
+                    end: endDateTime.toISOString(),
+                    priority: taskPriority,
+                    completed: false
+                };
+
+                tasks.push(task);
+                saveTasksToLocalStorage(tasks);
+                addTaskToDOM(task, calendar);
             }
-
-            const task = {
-                id: Date.now().toString(),
-                name: taskName,
-                start: startDateTime.toISOString(),
-                end: endDateTime.toISOString(),
-                priority: taskPriority,
-                completed: false
-            };
-
-            tasks.push(task);
-            saveTasksToLocalStorage(tasks);
-            console.log("Tasks saved to localStorage:", tasks);
-            addTaskToDOM(task, calendar);
+        } catch (error) {
+            console.error("Error adding task:", error);
+            alert("An unexpected error occurred while adding the task. Please try again.");
         }
     }, true, formContent);
-};
-
+}
 
 function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
     const formContent = `
@@ -305,31 +325,25 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
             const newEndDateTime = new Date(`${newTaskEndDate}T${newTaskEndTime}`);
 
             if (!isNaN(newStartDateTime.getTime()) && !isNaN(newEndDateTime.getTime())) {
-                // Update the DOM
                 taskCard.querySelector("h3").textContent = newTaskName;
                 taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toLocaleString()}`;
                 taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toLocaleString()}`;
                 taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
 
-                // Update the calendar event
                 calendarEvent.setProp('title', newTaskName);
-                calendarEvent.setStart(newStartDateTime);
-                calendarEvent.setEnd(newEndDateTime);
+                calendarEvent.setStart(newStartDateTime.toISOString());
+                calendarEvent.setEnd(newEndDateTime.toISOString());
 
-                // Find the task using the correct task ID from the data attribute
-                const taskId = taskCard.dataset.taskId;
-                const task = tasks.find(t => t.id === taskId);
-
-                if (task) {
-                    task.name = newTaskName;
-                    task.start = newStartDateTime.toISOString();
-                    task.end = newEndDateTime.toISOString();
-                    task.priority = newTaskPriority;
-
-                    // Save the updated tasks array to localStorage
-                    saveTasksToLocalStorage(tasks);
+                // Find the task in the tasks array and update it
+                const taskIndex = tasks.findIndex(t => t.id === taskCard.dataset.taskId);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex].name = newTaskName;
+                    tasks[taskIndex].start = newStartDateTime.toISOString();
+                    tasks[taskIndex].end = newEndDateTime.toISOString();
+                    tasks[taskIndex].priority = newTaskPriority;
+                    saveTasksToLocalStorage(tasks); // Save changes to local storage
                 } else {
-                    console.error("Task not found in array.");
+                    alert("An unexpected error occurred while updating the task. Please try again.");
                 }
             } else {
                 alert("Invalid date or time format. Please try again.");
@@ -337,6 +351,7 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
         }
     }, true, formContent);
 }
+
 
 
 
