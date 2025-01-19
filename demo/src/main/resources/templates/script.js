@@ -253,7 +253,7 @@ const addTask = (calendar) => {
             }
 
             const task = {
-                id: crypto.randomUUID(),
+                id: Date.now().toString(),
                 name: taskName,
                 start: startDateTime.toISOString(),
                 end: endDateTime.toISOString(),
@@ -292,7 +292,6 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
         </form>
     `;
 
-    console.log("Tasks before edit:", tasks);
     showCustomPrompt("Edit Task", (formData) => {
         if (formData) {
             const newTaskName = formData.get('taskName');
@@ -317,28 +316,20 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
                 calendarEvent.setStart(newStartDateTime);
                 calendarEvent.setEnd(newEndDateTime);
 
-                // Find and update the task in the `tasks` array
-                let task;
+                // Find the task using the correct task ID from the data attribute
                 const taskId = taskCard.dataset.taskId;
-                console.log("Task Card ID:", taskId);
-                if (taskId) {
-                    task = tasks.find(t => t.id === taskId); // Proceed only if the ID exists
-                    console.log(task); // Debug to ensure task is found
-                } else {
-                    console.log("Task ID is undefined.");
-                }
-                console.log("Task Card ID (raw):", taskCard.dataset.taskId);
-                console.log("All Tasks:", tasks);
+                const task = tasks.find(t => t.id === taskId);
+
                 if (task) {
-                    console.log("Task before update:", task);
                     task.name = newTaskName;
                     task.start = newStartDateTime.toISOString();
                     task.end = newEndDateTime.toISOString();
                     task.priority = newTaskPriority;
-                    console.log("Task after update:", task);
+
                     // Save the updated tasks array to localStorage
                     saveTasksToLocalStorage(tasks);
-                    console.log("Tasks saved to localStorage:", tasks);
+                } else {
+                    console.error("Task not found in array.");
                 }
             } else {
                 alert("Invalid date or time format. Please try again.");
@@ -346,6 +337,7 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
         }
     }, true, formContent);
 }
+
 
 
 function displayTasks(tasks) {
