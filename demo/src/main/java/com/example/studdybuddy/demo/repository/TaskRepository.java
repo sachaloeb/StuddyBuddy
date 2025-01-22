@@ -10,4 +10,6 @@ public interface TaskRepository extends JpaRepository<Task, Long>{
     public Task save(Task task);
 
     public void deleteById(Long id);
+
+    public void addTask(String[] taskData);
 }

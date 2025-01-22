@@ -24,7 +24,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<String[]> getTasks() {
+    public List<Task> getTasks() {
         return taskService.getAllTasks();
     }
 

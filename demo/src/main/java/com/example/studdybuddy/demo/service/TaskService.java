@@ -2,7 +2,6 @@ package com.example.studdybuddy.demo.service;
 
 import com.example.studdybuddy.demo.models.Task;
 import com.example.studdybuddy.demo.repository.TaskRepository;
-import com.example.studdybuddy.demo.utils.ExcelUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,11 +25,11 @@ public class TaskService {
         taskRepository.deleteById(taskId);
     }
 
-    public List<String[]> getAllTasks() {
-        return ExcelUtils.readTasks();
+    public List<Task> getAllTasks() {
+        return taskRepository.findAll();
     }
 
     public void addTask(String[] taskData) {
-        ExcelUtils.writeTask(taskData);
+        taskRepository.addTask(taskData);
     }
 }
