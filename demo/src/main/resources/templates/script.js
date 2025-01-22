@@ -1,4 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const welcomeMessage = document.getElementById("welcomeMessage");
+    welcomeMessage.style.textAlign = "center";
+    welcomeMessage.style.marginTop = "20px";
+    const userNameKey = "studyBuddyUserName";
+
+    // Check if a name is already stored
+    const storedUserName = localStorage.getItem(userNameKey);
+    if (storedUserName) {
+        displayWelcomeMessage(storedUserName);
+    } else {
+        promptForUserName();
+    }
     const modal = document.getElementById("modal");
     const introButton = document.getElementById("introButton");
     const closeModal = document.getElementById("closeModal");
@@ -58,12 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
     tasks.forEach(task => addTaskToDOM(task, calendar));
 });
 
-function parseDate(dateStr) {
-    const [date, time] = dateStr.split(', ');
-    const [day, month, year] = date.split('/');
-    return new Date(`${year}-${month}-${day}T${time}`);
-}
-
 function setupTaskTracking() {
     console.log("Task tracking placeholder initialized.");
     // Future: Add dynamic task handling here
@@ -99,7 +105,7 @@ function addTaskToDOM(task, calendar) {
         <p>End: ${new Date(task.end).toLocaleString()}</p>
         <p>Priority: ${task.priority}</p>
         <label>
-            <input type="checkbox" class="task-complete-checkbox" ${task.completed ? 'checked' : ''}> Done
+            <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox" ${task.completed ? 'checked' : ''}> Done
         </label>
         <div class="task-buttons">
             <button class="edit-task-button">Edit</button>
@@ -287,23 +293,24 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
 }
 
 // Add a welcome message dynamically
-const welcomeMessage = document.getElementById("welcomeMessage");
-const userName = "Student"; // You can replace this with a user input later
-welcomeMessage.innerHTML = `<h1>Welcome, ${userName}! Let's get started with StudyBuddy!</h1>`;
-welcomeMessage.style.textAlign = "center";
-welcomeMessage.style.marginTop = "20px";
-
-const userNameKey = "studyBuddyUserName";
-
-// Check if a name is already stored
-const storedUserName = localStorage.getItem(userNameKey);
-if (storedUserName) {
-    displayWelcomeMessage(storedUserName);
-} else {
-    promptForUserName();
-}
+// const welcomeMessage = document.getElementById("welcomeMessage");
+// const userName = "Student"; // You can replace this with a user input later
+// welcomeMessage.innerHTML = `<h1>Welcome, ${userName}! Let's get started with StudyBuddy!</h1>`;
+// welcomeMessage.style.textAlign = "center";
+// welcomeMessage.style.marginTop = "20px";
+//
+// const userNameKey = "studyBuddyUserName";
+//
+// // Check if a name is already stored
+// const storedUserName = localStorage.getItem(userNameKey);
+// if (storedUserName) {
+//     displayWelcomeMessage(storedUserName);
+// } else {
+//     promptForUserName();
+// }
 
 function promptForUserName() {
+    const userNameKey = "studyBuddyUserName";
     showCustomPrompt("Welcome to StudyBuddy! Please enter your name:", (name) => {
         if (name) {
             localStorage.setItem(userNameKey, name);
