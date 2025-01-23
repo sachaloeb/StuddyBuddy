@@ -1,0 +1,19 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"vmArgs": "--module-path \"/Users/sachaloeb/Documents/StuddyBuddy/demo/src/main/java/lib\" --add-modules javafx.controls,javafx.fxml",
+			"type": "java",
+			"name": "Launch Current File",
+			"request": "launch",
+			"mainClass": "${file}"
+		},
+		{
+			"vmArgs": "--module-path \"/Users/sachaloeb/Documents/StuddyBuddy/demo/src/main/java/lib\" --add-modules javafx.controls,javafx.fxml",
+			"type": "java",
+			"name": "Launch App",
+			"request": "launch",
+			"mainClass": "App"
+		}
+	]
+}
