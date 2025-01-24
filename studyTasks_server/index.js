@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json()); // Middleware to parse JSON requests
 
@@ -9,7 +9,7 @@ let tasks = [];
 let currentId = 1;
 
 // Add a new task
-app.post('/tasks/add', (req, res) => {
+app.post('/tasks', (req, res) => {
     const { name, description } = req.body;
     const task = { id: currentId++, name, description, completed: false };
     tasks.push(task);
