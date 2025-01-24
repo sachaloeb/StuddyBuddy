@@ -18,9 +18,9 @@ Welcome to **StudyBuddy**, a comprehensive web application designed to help stud
 - Maintain your energy and avoid burnout.
 
 ## 🛠️ Tech Stack
-- **Frontend**: HTML, CSS, JavaScript
-- **Backend**: Spring Boot (Java)
-- **Database**: NoSQL (future deployment)
+- **Frontend**: HTML, CSS, JavaScript (React)
+- **Backend**: JavaScript (Express.js), Java (Spring Boot), Python (data analysis & AI)
+- **Database**: NoSQL (MongoDB)
 
 ## 🚀 Installation Guide
 Follow these steps to set up **StudyBuddy** on your local machine:
