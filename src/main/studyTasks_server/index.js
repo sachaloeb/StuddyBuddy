@@ -1,12 +1,14 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
 const Users = require('./Models/Users');
 const Tasks = require('./Models/Tasks');
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3002;
 
 app.use(express.json()); // Middleware to parse JSON requests
 app.use(express.urlencoded({ extended: false }));
+app.use(cors()); // Enable CORS for all routes
 
 
 

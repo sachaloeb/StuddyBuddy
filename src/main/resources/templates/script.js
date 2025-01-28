@@ -1,42 +1,39 @@
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize tasks array from local storage
+let tasks = [];
+
+document.addEventListener("DOMContentLoaded", async () => {
     const welcomeMessage = document.getElementById("welcomeMessage");
     welcomeMessage.style.textAlign = "center";
     welcomeMessage.style.marginTop = "20px";
     const userNameKey = "studyBuddyUserName";
-
-    // Check if a name is already stored
     const storedUserName = localStorage.getItem(userNameKey);
     if (storedUserName) {
         displayWelcomeMessage(storedUserName);
     } else {
         promptForUserName();
     }
+
     const modal = document.getElementById("modal");
     const introButton = document.getElementById("introButton");
     const closeModal = document.getElementById("closeModal");
 
-    // Show the modal when the button is clicked
     introButton.addEventListener("click", () => {
         modal.style.display = "flex";
     });
 
-    // Hide the modal when the close button is clicked
     closeModal.addEventListener("click", () => {
         modal.style.display = "none";
     });
 
-    // Hide the modal if the user clicks outside of it
     window.addEventListener("click", (event) => {
         if (event.target === modal) {
             modal.style.display = "none";
         }
     });
 
-    // Placeholder for future features
     setupTaskTracking();
     setupStudyRecommendations();
 
-    // Initialize FullCalendar
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'timeGridWeek',
@@ -63,11 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     calendar.render();
 
-    // Add event listener for adding a new task
     document.getElementById("addTaskButton").addEventListener("click", () => addTask(calendar));
 
-    // Load tasks from local storage and display them
-    tasks.forEach(task => addTaskToDOM(task, calendar));
+    // Fetch tasks from the backend and display them
+    tasks = await fetchTasks();
+    const userTasks = tasks.filter(task => task.author === storedUserName);
+    userTasks.forEach(task => addTaskToDOM(task, calendar));
 });
 
 function setupTaskTracking() {
@@ -80,19 +78,71 @@ function setupStudyRecommendations() {
     // Future: Add recommendation algorithms here
 }
 
-// Function to save tasks to local storage
-function saveTasksToLocalStorage(tasks) {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+// Fetch tasks from the backend
+async function fetchTasks() {
+    try {
+        const response = await fetch('http://localhost:3002/tasks');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        return []; // Return an empty array on error
+    }
+}
+async function saveTaskToServer(task) {
+    try {
+        const response = await fetch('http://localhost:3002/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(task),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to save task');
+        }
+        const savedTask = await response.json();
+        addTaskToDOM(savedTask, calendar);
+    } catch (error) {
+        console.error('Error saving task:', error);
+    }
 }
 
-// Function to load tasks from local storage
-function loadTasksFromLocalStorage() {
-    const tasks = localStorage.getItem('tasks');
-    return tasks ? JSON.parse(tasks) : [];
+// Function to delete a task from the backend
+async function deleteTaskFromServer(taskId) {
+    try {
+        const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            throw new Error('Failed to delete task');
+        }
+        console.log('Task deleted successfully');
+    } catch (error) {
+        console.error('Error deleting task:', error);
+    }
 }
 
-// Initialize tasks array
-let tasks = loadTasksFromLocalStorage();
+// Function to update a task in the backend
+async function editTaskOnServer(taskId, updatedTask) {
+    try {
+        const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedTask),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update task');
+        }
+        const updatedTaskFromServer = await response.json();
+        console.log('Task updated successfully:', updatedTaskFromServer);
+        return updatedTaskFromServer;
+    } catch (error) {
+        console.error('Error updating task:', error);
+    }
+}
+
+
 
 // Function to add a task to the DOM
 function addTaskToDOM(task, calendar) {
@@ -120,9 +170,19 @@ function addTaskToDOM(task, calendar) {
         end: task.end
     });
 
-    taskCard.querySelector(".task-complete-checkbox").addEventListener("change", (event) => {
+    taskCard.querySelector(".task-complete-checkbox").addEventListener("change", async(event) => {
         task.completed = event.target.checked;
-        saveTasksToLocalStorage(tasks);
+        // Save to backend
+        try {
+            await fetch(`http://localhost:3001/tasks/${task.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completed: task.completed }),
+            });
+            console.log('Task updated successfully');
+        } catch (error) {
+            console.error('Error updating task:', error);
+        }
         taskCard.style.textDecoration = event.target.checked ? "line-through" : "none";
     });
 
@@ -131,8 +191,6 @@ function addTaskToDOM(task, calendar) {
         const startDateTimeText = taskCard.querySelector("p:nth-of-type(1)").textContent.split('Start: ')[1];
         const endDateTimeText = taskCard.querySelector("p:nth-of-type(2)").textContent.split('End: ')[1];
         const taskPriority = taskCard.querySelector("p:nth-of-type(3)").textContent.split('Priority: ')[1];
-        console.log("Start:", startDateTimeText);
-        console.log("End:", endDateTimeText);
 
         const startDateTime = moment(startDateTimeText, "DD/MM/YYYY, HH:mm:ss").toDate();
         const endDateTime = moment(endDateTimeText, "DD/MM/YYYY, HH:mm:ss").toDate();
@@ -147,12 +205,16 @@ function addTaskToDOM(task, calendar) {
 
 
     taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
-        showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", (response) => {
+        showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", async (response) => {
             if (response && response.toLowerCase() === 'yes') {
-                taskCard.remove();
-                calendarEvent.remove();
-                tasks = tasks.filter(t => t.id !== task.id);
-                saveTasksToLocalStorage(tasks);
+                try {
+                    await deleteTaskFromServer(task.id);
+                    taskCard.remove();
+                    calendarEvent.remove();
+                    console.log(`Task with ID ${task.id} removed from the backend.`);
+                } catch (error) {
+                    console.error('Failed to delete task:', error);
+                }
             }
         });
     });
@@ -185,7 +247,7 @@ function addTask(calendar) {
             <label for="startDate">Start Date (YYYY-MM-DD):</label>
             <input type="date" id="startDate" name="startDate" required>
             <label for="startTime">Start Time (HH:MM):</label>
-            <input type="time" id="startTime" name="startTime" required>
+            <input type="time" id="startTime" name="startTime">
             <label for="endDate">End Date (YYYY-MM-DD):</label>
             <input type="date" id="endDate" name="endDate" required>
             <label for="endTime">End Time (HH:MM):</label>
@@ -216,81 +278,71 @@ function addTask(calendar) {
             }
 
             const task = {
-                id: Date.now().toString(),
                 name: taskName,
                 start: startDateTime.toISOString(),
                 end: endDateTime.toISOString(),
                 priority: taskPriority,
-                completed: false
+                completed: false,
             };
 
-            tasks.push(task);
-            saveTasksToLocalStorage(tasks);
-            addTaskToDOM(task, calendar);
+            saveTaskToServer(task);
         }
     }, true, formContent);
 }
+
 
 function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
     const formContent = `
-        <form id="editTaskForm">
-            <label for="editTaskName">Task Name:</label>
-            <input type="text" id="editTaskName" name="taskName" value="${taskName}">
-            <label for="editTaskStartDate">Start Date (YYYY-MM-DD):</label>
-            <input type="date" id="editTaskStartDate" name="taskStartDate" value="${startDateTime.toISOString().split('T')[0]}">
-            <label for="editTaskStartTime">Start Time (HH:MM):</label>
-            <input type="time" id="editTaskStartTime" name="taskStartTime" value="${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
-            <label for="editTaskEndDate">End Date (YYYY-MM-DD):</label>
-            <input type="date" id="editTaskEndDate" name="taskEndDate" value="${endDateTime.toISOString().split('T')[0]}">
-            <label for="editTaskEndTime">End Time (HH:MM):</label>
-            <input type="time" id="editTaskEndTime" name="taskEndTime" value="${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
-            <label for="editTaskPriority">Priority:</label>
-            <select id="editTaskPriority" name="taskPriority">
-                <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
-                <option value="Medium" ${taskPriority === 'Medium' ? 'selected' : ''}>Medium</option>
-                <option value="Low" ${taskPriority === 'Low' ? 'selected' : ''}>Low</option>
-            </select>
-        </form>
-    `;
+            <form id="editTaskForm">
+                <label for="editTaskName">Task Name:</label>
+                <input type="text" id="editTaskName" name="taskName" value="${taskName}">
+                <label for="editTaskStartDate">Start Date (YYYY-MM-DD):</label>
+                <input type="date" id="editTaskStartDate" name="taskStartDate" value="${startDateTime.toISOString().split('T')[0]}">
+                <label for="editTaskStartTime">Start Time (HH:MM):</label>
+                <input type="time" id="editTaskStartTime" name="taskStartTime" value="${startDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+                <label for="editTaskEndDate">End Date (YYYY-MM-DD):</label>
+                <input type="date" id="editTaskEndDate" name="taskEndDate" value="${endDateTime.toISOString().split('T')[0]}">
+                <label for="editTaskEndTime">End Time (HH:MM):</label>
+                <input type="time" id="editTaskEndTime" name="taskEndTime" value="${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+                <label for="editTaskPriority">Priority:</label>
+                <select id="editTaskPriority" name="taskPriority">
+                    <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
+                    <option value="Medium" ${taskPriority === 'Medium' ? 'selected' : ''}>Medium</option>
+                    <option value="Low" ${taskPriority === 'Low' ? 'selected' : ''}>Low</option>
+                </select>
+            </form>
+        `;
 
-    showCustomPrompt("Edit Task", (formData) => {
+    showCustomPrompt("Edit Task", async (formData) => {
         if (formData) {
-            const newTaskName = formData.get('taskName');
-            const newTaskStartDate = formData.get('taskStartDate');
-            const newTaskStartTime = formData.get('taskStartTime');
-            const newTaskEndDate = formData.get('taskEndDate');
-            const newTaskEndTime = formData.get('taskEndTime');
-            const newTaskPriority = formData.get('taskPriority');
+            const updatedTask = {
+                name: formData.get('taskName'),
+                start: new Date(`${formData.get('taskStartDate')}T${formData.get('taskStartTime')}`).toISOString(),
+                end: new Date(`${formData.get('taskEndDate')}T${formData.get('taskEndTime')}`).toISOString(),
+                priority: formData.get('taskPriority'),
+                completed: task.completed, // Keep the original completion state
+            };
 
-            const newStartDateTime = new Date(`${newTaskStartDate}T${newTaskStartTime}`);
-            const newEndDateTime = new Date(`${newTaskEndDate}T${newTaskEndTime}`);
+            try {
+                const updatedTaskFromServer = await editTaskOnServer(task.id, updatedTask);
 
-            if (!validateTaskInputs(newTaskName, newStartDateTime, newEndDateTime)) {
-                return;
-            }
+                // Update the DOM
+                taskCard.querySelector("h3").textContent = updatedTaskFromServer.name;
+                taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${new Date(updatedTaskFromServer.start).toLocaleString()}`;
+                taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${new Date(updatedTaskFromServer.end).toLocaleString()}`;
+                taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${updatedTaskFromServer.priority}`;
 
-            taskCard.querySelector("h3").textContent = newTaskName;
-            taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${newStartDateTime.toLocaleString()}`;
-            taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${newEndDateTime.toLocaleString()}`;
-            taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${newTaskPriority}`;
-
-            calendarEvent.setProp('title', newTaskName);
-            calendarEvent.setStart(newStartDateTime.toISOString());
-            calendarEvent.setEnd(newEndDateTime.toISOString());
-
-            const taskIndex = tasks.findIndex(t => t.id === taskCard.dataset.taskId);
-            if (taskIndex !== -1) {
-                tasks[taskIndex].name = newTaskName;
-                tasks[taskIndex].start = newStartDateTime.toISOString();
-                tasks[taskIndex].end = newEndDateTime.toISOString();
-                tasks[taskIndex].priority = newTaskPriority;
-                saveTasksToLocalStorage(tasks);
-            } else {
-                alert("An unexpected error occurred while updating the task. Please try again.");
+                // Update the calendar event
+                calendarEvent.setProp('title', updatedTaskFromServer.name);
+                calendarEvent.setStart(updatedTaskFromServer.start);
+                calendarEvent.setEnd(updatedTaskFromServer.end);
+            } catch (error) {
+                console.error('Failed to update task:', error);
             }
         }
     }, true, formContent);
 }
+
 
 // Add a welcome message dynamically
 // const welcomeMessage = document.getElementById("welcomeMessage");
