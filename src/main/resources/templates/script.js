@@ -1,6 +1,6 @@
 // Initialize tasks array from local storage
 let tasks = [];
-
+let calendar;
 document.addEventListener("DOMContentLoaded", async () => {
     const welcomeMessage = document.getElementById("welcomeMessage");
     welcomeMessage.style.textAlign = "center";
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupStudyRecommendations();
 
     const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+    calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'timeGridWeek',
         headerToolbar: {
             left: 'prev,next today',
@@ -125,6 +125,7 @@ async function deleteTaskFromServer(taskId) {
 
 // Function to update a task in the backend
 async function editTaskOnServer(taskId, updatedTask) {
+    console.log(taskId);
     try {
         const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
             method: 'PUT',
@@ -151,11 +152,11 @@ function addTaskToDOM(task, calendar) {
     taskCard.dataset.taskId = task.id;
     taskCard.innerHTML = `
         <h3>${task.name}</h3>
-        <p>Start: ${new Date(task.start).toLocaleString()}</p>
-        <p>End: ${new Date(task.end).toLocaleString()}</p>
+        <p>Start: ${new Date(task.startDate).toLocaleString()}</p>
+        <p>End: ${new Date(task.dueDate).toLocaleString()}</p>
         <p>Priority: ${task.priority}</p>
         <label>
-            <input type="checkbox" class="task-complete-checkbox" id="taskCheckBox" ${task.completed ? 'checked' : ''}> Done
+            <input type="checkbox" class="task-complete-checkbox" name="taskCheckBox" ${task.IsCompleted ? 'checked' : ''}> Done
         </label>
         <div class="task-buttons">
             <button class="edit-task-button">Edit</button>
@@ -166,18 +167,18 @@ function addTaskToDOM(task, calendar) {
 
     const calendarEvent = calendar.addEvent({
         title: task.name,
-        start: task.start,
-        end: task.end
+        start: task.startDate,
+        end: task.dueDate
     });
 
     taskCard.querySelector(".task-complete-checkbox").addEventListener("change", async(event) => {
         task.completed = event.target.checked;
         // Save to backend
         try {
-            await fetch(`http://localhost:3001/tasks/${task.id}`, {
+            await fetch(`http://localhost:3002/tasks/${task._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ completed: task.completed }),
+                body: JSON.stringify({ IsCompleted: task.completed }),
             });
             console.log('Task updated successfully');
         } catch (error) {
@@ -197,21 +198,26 @@ function addTaskToDOM(task, calendar) {
 
         // Check if the dates are valid
         if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
-            showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent);
+            showEditForm(taskCard, task, startDateTime, endDateTime, taskPriority, calendarEvent);
         } else {
             alert("Invalid date or time format. Please check the task details and try again.");
         }
     });
 
 
-    taskCard.querySelector(".delete-task-button").addEventListener("click", () => {
+    taskCard.querySelector(".delete-task-button").addEventListener("click", async () => {
+        const taskId = task._id; // Ensure taskId is correctly set
         showCustomPrompt("Are you sure you want to delete this task? Type 'yes' to confirm:", async (response) => {
             if (response && response.toLowerCase() === 'yes') {
                 try {
-                    await deleteTaskFromServer(task.id);
-                    taskCard.remove();
-                    calendarEvent.remove();
-                    console.log(`Task with ID ${task.id} removed from the backend.`);
+                    await deleteTaskFromServer(taskId);
+                    if (taskCard) {
+                        taskCard.remove();
+                    }
+                    if (calendarEvent) {
+                        calendarEvent.remove();
+                    }
+                    console.log(`Task with ID ${taskId} removed from the backend.`);
                 } catch (error) {
                     console.error('Failed to delete task:', error);
                 }
@@ -239,7 +245,7 @@ function validateTaskInputs(taskName, startDateTime, endDateTime) {
     return true;
 }
 
-function addTask(calendar) {
+async function addTask(calendar) {
     const formContent = `
         <form id="addTaskForm">
             <label for="taskName">Task Name:</label>
@@ -261,7 +267,7 @@ function addTask(calendar) {
         </form>
     `;
 
-    showCustomPrompt("Add Task", (formData) => {
+    showCustomPrompt("Add Task", async (formData) => {
         if (formData) {
             const taskName = formData.get('taskName');
             const startDate = formData.get('startDate');
@@ -279,23 +285,24 @@ function addTask(calendar) {
 
             const task = {
                 name: taskName,
-                start: startDateTime.toISOString(),
-                end: endDateTime.toISOString(),
-                priority: taskPriority,
-                completed: false,
+                author: localStorage.getItem("studyBuddyUserName"),
+                startDate: startDateTime.toISOString(),
+                dueDate: endDateTime.toISOString(),
+                priority: taskPriority
             };
 
-            saveTaskToServer(task);
+            // ✅ Properly wait for the task to be saved
+            await saveTaskToServer(task);
         }
     }, true, formContent);
 }
 
 
-function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriority, calendarEvent) {
+function showEditForm(taskCard, task, startDateTime, endDateTime, taskPriority, calendarEvent) {
     const formContent = `
             <form id="editTaskForm">
                 <label for="editTaskName">Task Name:</label>
-                <input type="text" id="editTaskName" name="taskName" value="${taskName}">
+                <input type="text" id="editTaskName" name="taskName" value="${task.name}">
                 <label for="editTaskStartDate">Start Date (YYYY-MM-DD):</label>
                 <input type="date" id="editTaskStartDate" name="taskStartDate" value="${startDateTime.toISOString().split('T')[0]}">
                 <label for="editTaskStartTime">Start Time (HH:MM):</label>
@@ -317,25 +324,24 @@ function showEditForm(taskCard, taskName, startDateTime, endDateTime, taskPriori
         if (formData) {
             const updatedTask = {
                 name: formData.get('taskName'),
-                start: new Date(`${formData.get('taskStartDate')}T${formData.get('taskStartTime')}`).toISOString(),
-                end: new Date(`${formData.get('taskEndDate')}T${formData.get('taskEndTime')}`).toISOString(),
-                priority: formData.get('taskPriority'),
-                completed: task.completed, // Keep the original completion state
+                startDate: new Date(`${formData.get('taskStartDate')}T${formData.get('taskStartTime')}`).toISOString(),
+                dueDate: new Date(`${formData.get('taskEndDate')}T${formData.get('taskEndTime')}`).toISOString(),
+                priority: formData.get('taskPriority')
             };
 
             try {
-                const updatedTaskFromServer = await editTaskOnServer(task.id, updatedTask);
+                const updatedTaskFromServer = await editTaskOnServer(task._id, updatedTask);
 
                 // Update the DOM
                 taskCard.querySelector("h3").textContent = updatedTaskFromServer.name;
-                taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${new Date(updatedTaskFromServer.start).toLocaleString()}`;
-                taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${new Date(updatedTaskFromServer.end).toLocaleString()}`;
+                taskCard.querySelector("p:nth-of-type(1)").textContent = `Start: ${new Date(updatedTaskFromServer.startDate).toLocaleString()}`;
+                taskCard.querySelector("p:nth-of-type(2)").textContent = `End: ${new Date(updatedTaskFromServer.dueDate).toLocaleString()}`;
                 taskCard.querySelector("p:nth-of-type(3)").textContent = `Priority: ${updatedTaskFromServer.priority}`;
 
                 // Update the calendar event
                 calendarEvent.setProp('title', updatedTaskFromServer.name);
-                calendarEvent.setStart(updatedTaskFromServer.start);
-                calendarEvent.setEnd(updatedTaskFromServer.end);
+                calendarEvent.setStart(updatedTaskFromServer.startDate);
+                calendarEvent.setEnd(updatedTaskFromServer.dueDate);
             } catch (error) {
                 console.error('Failed to update task:', error);
             }
