@@ -6,7 +6,6 @@ const TaskSchema = new mongoose.Schema(
         author: { type: String, required: true },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
-        description: { type: String, required: false },
         startDate: { type: Date, default: null },
         dueDate: {
             type: Date,

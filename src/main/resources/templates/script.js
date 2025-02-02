@@ -1,16 +1,14 @@
 // Initialize tasks array from local storage
 let tasks = [];
 let calendar;
+let token;
 document.addEventListener("DOMContentLoaded", async () => {
     const welcomeMessage = document.getElementById("welcomeMessage");
     welcomeMessage.style.textAlign = "center";
     welcomeMessage.style.marginTop = "20px";
-    const userNameKey = "studyBuddyUserName";
-    const storedUserName = localStorage.getItem(userNameKey);
-    if (storedUserName) {
-        displayWelcomeMessage(storedUserName);
-    } else {
-        promptForUserName();
+    token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "auth/login.html";
     }
 
     const modal = document.getElementById("modal");
@@ -64,8 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch tasks from the backend and display them
     tasks = await fetchTasks();
-    const userTasks = tasks.filter(task => task.author === storedUserName);
-    userTasks.forEach(task => addTaskToDOM(task, calendar));
+    tasks.forEach(task => addTaskToDOM(task, calendar));
 });
 
 function setupTaskTracking() {
@@ -81,26 +78,37 @@ function setupStudyRecommendations() {
 // Fetch tasks from the backend
 async function fetchTasks() {
     try {
-        const response = await fetch('http://localhost:3002/tasks');
+        const token = localStorage.getItem("token");
+        const response = await fetch('http://localhost:3002/api/tasks', {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error('Failed to fetch tasks');
         }
+
         return await response.json();
     } catch (error) {
         console.error('Error fetching tasks:', error);
-        return []; // Return an empty array on error
+        return [];
     }
 }
 async function saveTaskToServer(task) {
     try {
-        const response = await fetch('http://localhost:3002/tasks', {
+        const token = localStorage.getItem("token");
+        const response = await fetch('http://localhost:3002/api/tasks', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(task),
         });
+
         if (!response.ok) {
             throw new Error('Failed to save task');
         }
+
         const savedTask = await response.json();
         addTaskToDOM(savedTask, calendar);
     } catch (error) {
@@ -111,9 +119,12 @@ async function saveTaskToServer(task) {
 // Function to delete a task from the backend
 async function deleteTaskFromServer(taskId) {
     try {
-        const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
             method: 'DELETE',
+            headers: { "Authorization": `Bearer ${token}` }
         });
+
         if (!response.ok) {
             throw new Error('Failed to delete task');
         }
@@ -127,9 +138,11 @@ async function deleteTaskFromServer(taskId) {
 async function editTaskOnServer(taskId, updatedTask) {
     console.log(taskId);
     try {
-        const response = await fetch(`http://localhost:3002/tasks/${taskId}`, {
+        const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' },
             body: JSON.stringify(updatedTask),
         });
         if (!response.ok) {
@@ -143,6 +156,18 @@ async function editTaskOnServer(taskId, updatedTask) {
     }
 }
 
+function isTokenExpired(token) {
+    if (!token) return true;
+
+    try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000; // Convert to seconds
+        return decoded.exp < currentTime;
+    } catch (error) {
+        console.error('Error decoding token:', error);
+        return true;
+    }
+}
 
 
 // Function to add a task to the DOM
@@ -175,16 +200,18 @@ function addTaskToDOM(task, calendar) {
         task.completed = event.target.checked;
         // Save to backend
         try {
-            await fetch(`http://localhost:3002/tasks/${task._id}`, {
+            await fetch(`http://localhost:3002/api/tasks/${task._id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ IsCompleted: task.completed }),
             });
             console.log('Task updated successfully');
         } catch (error) {
             console.error('Error updating task:', error);
         }
-        taskCard.style.textDecoration = event.target.checked ? "line-through" : "none";
     });
 
     taskCard.querySelector(".edit-task-button").addEventListener("click", () => {
@@ -258,6 +285,16 @@ async function addTask(calendar) {
             <input type="date" id="endDate" name="endDate" required>
             <label for="endTime">End Time (HH:MM):</label>
             <input type="time" id="endTime" name="endTime" required>
+            <label for="taskType">Type:</label>
+            <select id="taskType" name="taskType" required>
+                <option value="Personal">Personal</option>
+                <option value="Class">Class</option>
+                <option value="Assignment">Assignment</option>
+                <option value="Exam">Exam</option>
+                <option value="Study Time">Study Time</option>
+                <option value="Professional">Professional</option>
+                <option value="Break">Break</option>
+            </select>
             <label for="taskPriority">Priority:</label>
             <select id="taskPriority" name="taskPriority" required>
                 <option value="High">High</option>
@@ -274,6 +311,7 @@ async function addTask(calendar) {
             const startTime = formData.get('startTime');
             const endDate = formData.get('endDate');
             const endTime = formData.get('endTime');
+            const taskType = formData.get('taskType');
             const taskPriority = formData.get('taskPriority');
 
             const startDateTime = new Date(`${startDate}T${startTime}`);
@@ -285,9 +323,9 @@ async function addTask(calendar) {
 
             const task = {
                 name: taskName,
-                author: localStorage.getItem("studyBuddyUserName"),
                 startDate: startDateTime.toISOString(),
                 dueDate: endDateTime.toISOString(),
+                type: taskType,
                 priority: taskPriority
             };
 
@@ -311,6 +349,16 @@ function showEditForm(taskCard, task, startDateTime, endDateTime, taskPriority, 
                 <input type="date" id="editTaskEndDate" name="taskEndDate" value="${endDateTime.toISOString().split('T')[0]}">
                 <label for="editTaskEndTime">End Time (HH:MM):</label>
                 <input type="time" id="editTaskEndTime" name="taskEndTime" value="${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}">
+                <label for="editTaskType">Type:</label>
+                <select id="editTaskType" name="taskType">
+                    <option value="Personal" ${task.type === 'Personal' ? 'selected' : ''}>Personal</option>
+                    <option value="Class" ${task.type === 'Class' ? 'selected' : ''}>Class</option>
+                    <option value="Assignment" ${task.type === 'Assignment' ? 'selected' : ''}>Assignment</option>
+                    <option value="Exam" ${task.type === 'Exam' ? 'selected' : ''}>Exam</option>
+                    <option value="Study Time" ${task.type === 'Study Time' ? 'selected' : ''}>Study Time</option>
+                    <option value="Professional" ${task.type === 'Professional' ? 'selected' : ''}>Professional</option>
+                    <option value="Break" ${task.type === 'Break' ? 'selected' : ''}>Break</option>
+                </select>
                 <label for="editTaskPriority">Priority:</label>
                 <select id="editTaskPriority" name="taskPriority">
                     <option value="High" ${taskPriority === 'High' ? 'selected' : ''}>High</option>
@@ -321,11 +369,17 @@ function showEditForm(taskCard, task, startDateTime, endDateTime, taskPriority, 
         `;
 
     showCustomPrompt("Edit Task", async (formData) => {
+        if (!task || !task._id) {
+            console.error("Task ID is missing, cannot edit task.");
+            return;
+        }
+
         if (formData) {
             const updatedTask = {
                 name: formData.get('taskName'),
                 startDate: new Date(`${formData.get('taskStartDate')}T${formData.get('taskStartTime')}`).toISOString(),
                 dueDate: new Date(`${formData.get('taskEndDate')}T${formData.get('taskEndTime')}`).toISOString(),
+                type: formData.get('taskType'),
                 priority: formData.get('taskPriority')
             };
 

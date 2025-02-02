@@ -16,7 +16,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Create a new task (only for authenticated users)
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { name, description, startDate, dueDate, type, priority } = req.body;
+        const { name, startDate, dueDate, type, priority } = req.body;
 
         if (!name || !dueDate || !type) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -25,7 +25,6 @@ router.post('/', authMiddleware, async (req, res) => {
         const newTask = new Task({
             name,
             author: req.user.id, // Ensure user ID is being set correctly
-            description,
             startDate,
             dueDate,
             type,
@@ -43,7 +42,7 @@ router.post('/', authMiddleware, async (req, res) => {
 // Update a task by ID
 router.put('/:id', authMiddleware, async (req, res) => {
     try {
-        const { name, description, startDate, dueDate, type, priority, IsCompleted } = req.body;
+        const { name, startDate, dueDate, type, priority, IsCompleted } = req.body;
 
         let task = await Task.findById(req.params.id);
         if (!task || task.author.toString() !== req.user.id) {
@@ -51,7 +50,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
         }
 
         task.name = name || task.name;
-        task.description = description || task.description;
         task.startDate = startDate || task.startDate;
         task.dueDate = dueDate || task.dueDate;
         task.type = type || task.type;

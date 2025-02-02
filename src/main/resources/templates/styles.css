@@ -282,6 +282,11 @@ button:hover {
     margin-top: 10px;
 }
 
+.task-card.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
 /* Typography and spacing */
 h1, h2, h3 {
     margin: 0.5rem 0;
