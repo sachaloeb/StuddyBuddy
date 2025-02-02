@@ -16,7 +16,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Create a new task (only for authenticated users)
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { name, description, startDate, dueDate, type, priority, IsCompleted } = req.body;
+        const { name, description, startDate, dueDate, type, priority } = req.body;
 
         if (!name || !dueDate || !type) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -29,8 +29,7 @@ router.post('/', authMiddleware, async (req, res) => {
             startDate,
             dueDate,
             type,
-            priority,
-            IsCompleted
+            priority
         });
 
         await newTask.save();
