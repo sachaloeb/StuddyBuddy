@@ -282,7 +282,7 @@ button:hover {
     margin-top: 10px;
 }
 
-.task-card.completed {
+.task-card:has(input[type="checkbox"]:checked) {
     text-decoration: line-through;
     opacity: 0.6;
 }
