@@ -1,28 +1,40 @@
-//import logo from './logo.svg';
-//import './App.css';
-
 import React from 'react';
-import { Link } from 'react-router-dom';
-import Counter from './components/Counter';
+import { Routes, Route, Link } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import TaskManagement from './pages/TaskManagement';
+// import StudyRecommendations from './pages/StudyRecommendations';
+// import BreakReminders from './pages/BreakReminders';
+import './index.css';
 
 const App = () => {
-  return (
-      <div style={{ textAlign: 'center', padding: '20px' }}>
-        <h1>Welcome to StudyBuddy 📚</h1>
-        <p>Your personal assistant for managing tasks and study schedules!</p>
-
-        <nav>
-          <Link to="/tasks" style={navStyle}>📋 Task Tracking</Link> |
-          <Link to="/schedule" style={navStyle}>📅 Schedule Organizer</Link>
-        </nav>
-
-        <h2>Try our Counter Component</h2>
-        <Counter />
-      </div>
-  );
+    return (
+        <div>
+            <header>
+                <h1>StudyBuddy</h1>
+            </header>
+            <nav id="navbar" className="navbar">
+                <ul>
+                    <li><Link to="/dashboard">Schedule Organizer</Link></li>
+                    <li><Link to="/tasks">Task Tracking</Link></li>
+                    {/*<li><Link to="/study-recommendations">Study Recommendations</Link></li>*/}
+                    {/*<li><Link to="/break-reminders">Break Reminders</Link></li>*/}
+                </ul>
+            </nav>
+            <main>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/tasks" element={<TaskManagement />} />
+                    <Route path="/" element={<Dashboard />} />
+                    {/*<Route path="/study-recommendations" element={<StudyRecommendations />} />*/}
+                    {/*<Route path="/break-reminders" element={<BreakReminders />} />*/}
+                </Routes>
+            </main>
+        </div>
+    );
 };
 
-const navStyle = { margin: '0 10px', textDecoration: 'none', fontSize: '18px' };
-
 export default App;
-
