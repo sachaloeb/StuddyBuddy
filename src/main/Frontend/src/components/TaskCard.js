@@ -2,7 +2,7 @@ import React from "react";
 
 const TaskCard = ({ task, handleToggleTaskCompletion }) => {
     return (
-        <div className={`task-card ${task.IsCompleted ? "completed" : ""}`}>
+        <div className={`task-card ${task.IsCompleted ? "completed" : ""}`} key={task.id}>
             <h3>{task.name}</h3>
             <p>Due: {new Date(task.dueDate).toLocaleString()}</p>
             <label>
