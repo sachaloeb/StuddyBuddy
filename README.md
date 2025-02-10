@@ -27,7 +27,7 @@ Follow these steps to set up **StudyBuddy** on your local machine:
 
 1. **Clone the Repository**
 ```bash
-git clone https://github.com/your-username/StudyBuddy.git
+git clone https://github.com/sachaloeb/StudyBuddy.git
 cd StudyBuddy
 ```
 2. **Install Dependencies**
