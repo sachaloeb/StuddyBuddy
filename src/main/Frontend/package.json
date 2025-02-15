@@ -45,6 +45,7 @@
     ]
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "netlify-cli": "^18.1.0"
   }
 }
