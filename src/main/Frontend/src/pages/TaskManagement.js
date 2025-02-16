@@ -18,9 +18,15 @@ const TaskManagement = () => {
             });
             if (!response.ok) throw new Error("Failed to fetch tasks");
             const data = await response.json();
-            setTasks(data);
+            console.log("Fetched tasks:", data); // Log the fetched data
+            if (Array.isArray(data.tasks)) {
+                setTasks(data.tasks); // Access the tasks array within the object
+            } else {
+                setTasks([]); // Ensure tasks is an array
+            }
         } catch (error) {
             console.error("Error fetching tasks:", error);
+            setTasks([]); // Ensure tasks is an array in case of error
         }
     };
 
@@ -68,18 +74,19 @@ const TaskManagement = () => {
     return (
         <div>
             <section id="task-tracking">
-            <h2>📋 Task Tracking</h2>
-            <button id="addTaskButton" className="modal-button" onClick={() => alert("Open Task Modal!")}>
-                Add New Task
-            </button>
+                <h2>📋 Task Tracking</h2>
+                <button id="addTaskButton" className="modal-button" onClick={() => alert("Open Task Modal!")}>
+                    Add New Task
+                </button>
 
-            {/* Task List */}
+                {/* Task List */}
                 <section className="tasks">
                     {tasks.length === 0 ? (
                         <p>No tasks available. Add one!</p>
                     ) : (
                         tasks.map((task) => (
                             <TaskCard
+                                key={task.id}
                                 task={task}
                                 handleToggleTaskCompletion={handleToggleTaskCompletion}
                             />
