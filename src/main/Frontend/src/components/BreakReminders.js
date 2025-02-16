@@ -1,48 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
 
-const BreakReminders = () => {
+const BreakReminder = () => {
     const [reminders, setReminders] = useState([]);
+    const [showReminder, setShowReminder] = useState(false);
+    const [currentReminder, setCurrentReminder] = useState("");
 
     useEffect(() => {
-        // Fetch break reminders from the backend API
-        const fetchReminders = async () => {
-            try {
-                const token = localStorage.getItem("token"); // Get the token from local storage
-                const response = await axios.get('http://localhost:3002/api/break-reminders', {
-                    headers: { Authorization: `Bearer ${token}` } // Include the token in the request headers
-                });
-                setReminders(response.data);
-            } catch (error) {
-                console.error('Error fetching break reminders:', error);
-            }
-        };
-
-        fetchReminders();
+        fetchBreakReminders();
     }, []);
 
+    // 🔥 Fetch break reminders from backend
+    const fetchBreakReminders = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:3002/api/break-reminders", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!response.ok) throw new Error("Failed to fetch reminders");
+
+            const data = await response.json();
+            setReminders(data.reminders || []);
+        } catch (error) {
+            console.error("Error fetching break reminders:", error);
+        }
+    };
+
+    // 🔥 Show pop-up reminders every 6 seconds for testing
     useEffect(() => {
-        // Display pop-up reminders at fixed intervals
         const interval = setInterval(() => {
             if (reminders.length > 0) {
-                const reminder = reminders[Math.floor(Math.random() * reminders.length)];
-                alert(`Break Reminder: ${reminder.message}`);
+                const randomReminder = reminders[Math.floor(Math.random() * reminders.length)];
+                setCurrentReminder(randomReminder.message);
+                setShowReminder(true);
+
+                // Hide the notification after 5 seconds
+                setTimeout(() => setShowReminder(false), 5000);
             }
-        }, 3600000); // 1 hour interval
+        }, 6000); // 🔥 Every 6 seconds (for testing)
 
         return () => clearInterval(interval);
     }, [reminders]);
 
     return (
-        <div>
-            <h2>Break Reminders</h2>
-            <ul>
-                {reminders.map((reminder, index) => (
-                    <li key={index}>{reminder.message}</li>
-                ))}
-            </ul>
-        </div>
+        <>
+                <div className="break-reminder-popup">
+                    <p>{currentReminder}</p>
+                    <button onClick={() => setShowReminder(false)}>Dismiss</button>
+                </div>
+        </>
     );
 };
 
-export default BreakReminders;
+export default BreakReminder;

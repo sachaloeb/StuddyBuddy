@@ -1,15 +1,13 @@
 const cron = require("node-cron");
 const BreakReminder = require("../Models/BreakReminder");
 
-// Store reminders per user (Temporary storage - can be replaced with a DB)
-let breakReminders = {};
 
-// 🔥 Function to create and save a break reminder for a user
 
 // 🔥 Function to add a break reminder (Now works via POST request)
+// src/main/Backend/controllers/breakReminders.js
 const addBreakReminder = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.id; // Get the logged-in user's ID
         const { message } = req.body; // Allow custom messages
 
         const reminder = new BreakReminder({
@@ -28,8 +26,20 @@ const addBreakReminder = async (req, res) => {
 // 🔥 Schedule reminders every 25 minutes
 cron.schedule("*/25 * * * *", async () => {
     console.log("⏰ Sending Pomodoro Break Reminders...");
-    // Fetch all users and add reminders for them (this assumes all users get reminders)
-    // If user customization is needed, modify this logic.
+    try {
+        const users = await User.find(); // Fetch all users
+        const reminderPromises = users.map(user => {
+            const reminder = new BreakReminder({
+                userId: user._id,
+                message: "⏳ Time for a break! Stay refreshed and productive."
+            });
+            return reminder.save();
+        });
+        await Promise.all(reminderPromises);
+        console.log("✅ Break reminders added for all users.");
+    } catch (error) {
+        console.error("❌ Error adding break reminders:", error);
+    }
 });
 
 // 🔥 GET /break-reminders - Fetch user-specific reminders

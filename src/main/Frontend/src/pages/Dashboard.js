@@ -3,6 +3,7 @@ import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
+import BreakReminder from '../components/BreakReminders';
 import '../index.css';
 
 const Dashboard = () => {
@@ -45,6 +46,7 @@ const Dashboard = () => {
                 />
                 </div>
             </section>
+            <BreakReminder />
         </div>
     );
 };

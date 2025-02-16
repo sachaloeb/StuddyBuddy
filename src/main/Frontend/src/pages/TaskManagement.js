@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "../index.css";
 import TaskCard from "../components/TaskCard";
+import TaskForm from "../components/TaskForm";
 
 const TaskManagement = () => {
-    const [taskName, setTaskName] = useState("");
     const [tasks, setTasks] = useState([]);
+    const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
     useEffect(() => {
         fetchTasks(); // Fetch tasks when component loads
@@ -30,11 +31,7 @@ const TaskManagement = () => {
         }
     };
 
-    const handleAddTask = async (e) => {
-        e.preventDefault();
-        if (!taskName.trim()) return;
-
-        const newTask = { name: taskName };
+    const handleAddTask = async (newTask) => {
         try {
             const token = localStorage.getItem("token");
             await fetch("http://localhost:3002/api/tasks", {
@@ -46,7 +43,7 @@ const TaskManagement = () => {
                 body: JSON.stringify(newTask),
             });
 
-            setTaskName(""); // Clear input field
+            setIsTaskFormOpen(false); // Close the form
             fetchTasks(); // Refresh the task list
         } catch (error) {
             console.error("Error adding task:", error);
@@ -75,7 +72,7 @@ const TaskManagement = () => {
         <div>
             <section id="task-tracking">
                 <h2>📋 Task Tracking</h2>
-                <button id="addTaskButton" className="modal-button" onClick={() => alert("Open Task Modal!")}>
+                <button id="addTaskButton" className="modal-button" onClick={() => setIsTaskFormOpen(true)}>
                     Add New Task
                 </button>
 
@@ -94,6 +91,13 @@ const TaskManagement = () => {
                     )}
                 </section>
             </section>
+
+            {isTaskFormOpen && (
+                <TaskForm
+                    onSubmit={handleAddTask}
+                    onClose={() => setIsTaskFormOpen(false)}
+                />
+            )}
         </div>
     );
 };

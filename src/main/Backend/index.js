@@ -8,19 +8,25 @@ const logger = require("./middleware/logger");
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const breakRoutes = require("./routes/breakRoutes");
+const apiLimiter = require("./middleware/rateLimiter");
 const port = process.env.PORT || 3002;
 
 dotenv.config();
 app.use(express.json()); // Middleware to parse JSON requests
 app.use(express.urlencoded({ extended: false }));
 app.use(cors()); // Enable CORS for all routes
-app.use(logger);
+
+// ✅ Log only in development mode
+if (process.env.NODE_ENV === "development") {
+    app.use(logger);
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use("/api/break-reminders", breakRoutes);
+app.use('/api/tasks', apiLimiter,taskRoutes);
+app.use("/api/break-reminders", apiLimiter,breakRoutes);
 app.use(errorHandler);
+//app.use("/api",apiLimiter);
 
 // //Add a new user
 // app.post('/users', async(req, res) => {
