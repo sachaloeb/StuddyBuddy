@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const TaskSchema = new mongoose.Schema(
     {
         name: { type: String, required: true },
-        author: { type: String, required: true },
+        author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
         startDate: { type: Date, default: null },
@@ -29,5 +29,5 @@ const TaskSchema = new mongoose.Schema(
 
 //TaskSchema.index({ author: 1, dueDate: 1, completed: 1 });
 
-const Tasks = mongoose.model('Task', TaskSchema);
+const Tasks = mongoose.models.Task || mongoose.model('Task', TaskSchema);
 module.exports = Tasks;

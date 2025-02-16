@@ -3,6 +3,8 @@ const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const errorHandler = require("./middleware/errorHandler");
+const logger = require("./middleware/logger");
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const breakRoutes = require("./routes/breakRoutes");
@@ -12,11 +14,13 @@ dotenv.config();
 app.use(express.json()); // Middleware to parse JSON requests
 app.use(express.urlencoded({ extended: false }));
 app.use(cors()); // Enable CORS for all routes
+app.use(logger);
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use("/api/break-reminders", breakRoutes);
+app.use(errorHandler);
 
 // //Add a new user
 // app.post('/users', async(req, res) => {
