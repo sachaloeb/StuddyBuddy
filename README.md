@@ -19,7 +19,7 @@ Welcome to **StudyBuddy**, a comprehensive web application designed to help stud
 
 ## 🛠️ Tech Stack
 - **Frontend**: HTML, CSS, JavaScript (React)
-- **Backend**: JavaScript (Express.js), Java (Spring Boot), Python (data analysis & AI)
+- **Backend**: JavaScript (Express.js), Python (data analysis & AI)
 - **Database**: NoSQL (MongoDB)
 
 ## 🚀 Installation Guide
