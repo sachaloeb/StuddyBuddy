@@ -32,18 +32,16 @@ cd StudyBuddy
 ```
 2. **Install Dependencies**
 - Open the project in IntelliJ or your preferred IDE.
-- Ensure you have Java, Maven, and Spring Boot installed.
+- Ensure you have Java, Maven, Node.js, React.js and Express.js installed.
 
 ## 📂 Project Structure
 - **Frontend**:
-  - src/main/resources/templates: HTML, CSS, JavaScript.
+  - src/main/Frontend: React frontend.
 - **Backend**:
-  - demo/src/main/java/com.example.studdybuddy.demo: Core application logic.
-- **Database**:
-  - Future plans include using NoSQL to store data.
+  - src/main/Backend: Core application logic and Express API connected to MongoDB database.
 
 ## 🛠️ Current Limitations
-- Spring Boot website is not fully set up.
+- React frontend is not fully complete.
 - Advanced AI-based scheduling is under development.
 
 ## 🧑‍💻 Contribution Guidelines
@@ -52,8 +50,7 @@ We welcome contributions from the community! Here’s how you can help:
 - Submit a pull request with a detailed explanation of your work.
 
 ## 🏆 Roadmap
-- Set up a NoSQL database.
-- Add user authentication and role-based access.
+- Add role-based access.
 - Enhance task scheduling with machine learning algorithms.
 - Develop an intuitive mobile-friendly UI.
 
