@@ -4,7 +4,9 @@ const TaskCard = ({ task, handleToggleTaskCompletion, handleEditTask, handleDele
     return (
         <div className={`task-card ${task.IsCompleted ? "completed" : ""}`} key={task.id}>
             <h3>{task.name}</h3>
-            <p>Due: {new Date(task.dueDate).toLocaleString()}</p>
+            <p>Start: {new Date(task.startDate).toLocaleString()}</p>
+            <p>End: {new Date(task.dueDate).toLocaleString()}</p>
+            <p>Priority: {task.priority}</p>
             <label>
                 <input
                     name="taskCheckBox"

@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import "../index.css";
 import TaskCard from "../components/TaskCard";
 import TaskForm from "../components/TaskForm";
+import TaskCalendar from "../pages/Dashboard"; // Corrected import
 
 const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
     const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+    const [taskToEdit, setTaskToEdit] = useState(null);
 
     useEffect(() => {
-        fetchTasks(); // Fetch tasks when component loads
+        fetchTasks();
     }, []);
 
     const fetchTasks = async () => {
@@ -19,15 +21,10 @@ const TaskManagement = () => {
             });
             if (!response.ok) throw new Error("Failed to fetch tasks");
             const data = await response.json();
-            console.log("Fetched tasks:", data); // Log the fetched data
-            if (Array.isArray(data.tasks)) {
-                setTasks(data.tasks); // Access the tasks array within the object
-            } else {
-                setTasks([]); // Ensure tasks is an array
-            }
+            setTasks(data.tasks || []);
         } catch (error) {
             console.error("Error fetching tasks:", error);
-            setTasks([]); // Ensure tasks is an array in case of error
+            setTasks([]);
         }
     };
 
@@ -42,11 +39,47 @@ const TaskManagement = () => {
                 },
                 body: JSON.stringify(newTask),
             });
-
-            setIsTaskFormOpen(false); // Close the form
-            fetchTasks(); // Refresh the task list
+            setIsTaskFormOpen(false);
+            fetchTasks();
         } catch (error) {
             console.error("Error adding task:", error);
+        }
+    };
+
+    const handleEditTask = (task) => {
+        setTaskToEdit(task);
+        setIsTaskFormOpen(true);
+    };
+
+    const handleUpdateTask = async (updatedTask) => {
+        try {
+            const token = localStorage.getItem("token");
+            await fetch(`http://localhost:3002/api/tasks/${updatedTask.id}`, {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedTask),
+            });
+            setIsTaskFormOpen(false);
+            setTaskToEdit(null);
+            fetchTasks();
+        } catch (error) {
+            console.error("Error updating task:", error);
+        }
+    };
+
+    const handleDeleteTask = async (taskId) => {
+        try {
+            const token = localStorage.getItem("token");
+            await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            fetchTasks();
+        } catch (error) {
+            console.error("Error deleting task:", error);
         }
     };
 
@@ -61,10 +94,9 @@ const TaskManagement = () => {
                 },
                 body: JSON.stringify({ IsCompleted: !isCompleted }),
             });
-
             fetchTasks();
         } catch (error) {
-            console.error("Error updating task:", error);
+            console.error("Error toggling task completion:", error);
         }
     };
 
@@ -76,7 +108,6 @@ const TaskManagement = () => {
                     Add New Task
                 </button>
 
-                {/* Task List */}
                 <section className="tasks">
                     {tasks.length === 0 ? (
                         <p>No tasks available. Add one!</p>
@@ -86,6 +117,8 @@ const TaskManagement = () => {
                                 key={task.id}
                                 task={task}
                                 handleToggleTaskCompletion={handleToggleTaskCompletion}
+                                handleEditTask={handleEditTask}
+                                handleDeleteTask={handleDeleteTask}
                             />
                         ))
                     )}
@@ -94,10 +127,16 @@ const TaskManagement = () => {
 
             {isTaskFormOpen && (
                 <TaskForm
-                    onSubmit={handleAddTask}
-                    onClose={() => setIsTaskFormOpen(false)}
+                    onSubmit={taskToEdit ? handleUpdateTask : handleAddTask}
+                    onClose={() => {
+                        setIsTaskFormOpen(false);
+                        setTaskToEdit(null);
+                    }}
+                    task={taskToEdit}
                 />
             )}
+
+            <TaskCalendar tasks={tasks} />
         </div>
     );
 };
