@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import CustomPrompt from "./CustomPrompt";
-import handleAddTask from "../pages/TaskManagement"; // Import handleAddTask
+import "../index.css";
 
-const AddTaskModal = ({ calendar, onClose }) => {
+const AddTaskModal = ({ calendar, onClose, onSave }) => {
     const [taskName, setTaskName] = useState("");
     const [startDate, setStartDate] = useState("");
     const [startTime, setStartTime] = useState("");
@@ -41,7 +41,7 @@ const AddTaskModal = ({ calendar, onClose }) => {
             priority: taskPriority,
         };
 
-        await handleAddTask(task);
+        await onSave(task);
         onClose(); // Close the modal after saving
     };
 
@@ -49,43 +49,45 @@ const AddTaskModal = ({ calendar, onClose }) => {
         <CustomPrompt
             message="Add Task"
             isForm={true}
-            onClose={(data) => (data ? handleSubmit() : onClose())}
-        >
-            <form id="addTaskForm">
-                <label htmlFor="taskName">Task Name:</label>
-                <input type="text" id="taskName" value={taskName} onChange={(e) => setTaskName(e.target.value)} required />
+            onConfirm={(data) => (data ? handleSubmit() : onClose())}
+            onCancel={onClose}
+            formContent={
+                <form id="addTaskForm">
+                    <label htmlFor="taskName">Task Name:</label>
+                    <input type="text" id="taskName" value={taskName} onChange={(e) => setTaskName(e.target.value)} required />
 
-                <label htmlFor="startDate">Start Date (YYYY-MM-DD):</label>
-                <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                    <label htmlFor="startDate">Start Date (YYYY-MM-DD):</label>
+                    <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
 
-                <label htmlFor="startTime">Start Time (HH:MM):</label>
-                <input type="time" id="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                    <label htmlFor="startTime">Start Time (HH:MM):</label>
+                    <input type="time" id="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
 
-                <label htmlFor="endDate">End Date (YYYY-MM-DD):</label>
-                <input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                    <label htmlFor="endDate">End Date (YYYY-MM-DD):</label>
+                    <input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
 
-                <label htmlFor="endTime">End Time (HH:MM):</label>
-                <input type="time" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+                    <label htmlFor="endTime">End Time (HH:MM):</label>
+                    <input type="time" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
 
-                <label htmlFor="taskType">Type:</label>
-                <select id="taskType" value={taskType} onChange={(e) => setTaskType(e.target.value)} required>
-                    <option value="Personal">Personal</option>
-                    <option value="Class">Class</option>
-                    <option value="Assignment">Assignment</option>
-                    <option value="Exam">Exam</option>
-                    <option value="Study Time">Study Time</option>
-                    <option value="Professional">Professional</option>
-                    <option value="Break">Break</option>
-                </select>
+                    <label htmlFor="taskType">Type:</label>
+                    <select id="taskType" value={taskType} onChange={(e) => setTaskType(e.target.value)} required>
+                        <option value="Personal">Personal</option>
+                        <option value="Class">Class</option>
+                        <option value="Assignment">Assignment</option>
+                        <option value="Exam">Exam</option>
+                        <option value="Study Time">Study Time</option>
+                        <option value="Professional">Professional</option>
+                        <option value="Break">Break</option>
+                    </select>
 
-                <label htmlFor="taskPriority">Priority:</label>
-                <select id="taskPriority" value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} required>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                </select>
-            </form>
-        </CustomPrompt>
+                    <label htmlFor="taskPriority">Priority:</label>
+                    <select id="taskPriority" value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} required>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </form>
+            }
+        />
     );
 };
 

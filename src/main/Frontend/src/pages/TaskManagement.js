@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import TaskCard from "../components/TaskCard";
-import AddTaskModal from "../components/AddTaskModal"; // Import AddTaskModal
+import TaskModal from "../components/TaskModal"; // Import TaskModal
 import "../index.css";
 
 const TaskManagementPage = () => {
     const [tasks, setTasks] = useState([]);
-    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         fetchTasks();
@@ -54,8 +54,16 @@ const TaskManagementPage = () => {
         } catch (error) {
             console.error('Error saving task:', error);
         }
-        setShowAddTaskModal(false);
+        setShowModal(false);
     }
+
+    const handleOpenModal = () => {
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
 
     return (
         <div>
@@ -64,17 +72,17 @@ const TaskManagementPage = () => {
                 <button
                     id="addTaskButton"
                     className="modal-button"
-                    onClick={() => setShowAddTaskModal(true)}
+                    onClick={handleOpenModal}
                 >
                     Add Task
                 </button>
 
-                {/* Render AddTaskModal when showAddTaskModal is true */}
-                {showAddTaskModal && (
-                    <AddTaskModal
-                        calendar={null}
-                        onClose={() => setShowAddTaskModal(false)}
-                        onSave={handleAddTask}
+                {/* Render TaskModal when showModal is true */}
+                {showModal && (
+                    <TaskModal
+                        isOpen={showModal}
+                        onClose={handleCloseModal}
+                        onConfirm={handleAddTask}
                     />
                 )}
 

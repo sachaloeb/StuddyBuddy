@@ -1,60 +1,23 @@
-import React, {useState, useEffect, useRef} from "react";
-import "../index.css";
+import React from "react";
 
-const CustomPrompt = ({ message, onClose, isForm = false, formContent = "" }) => {
-    const [inputValue, setInputValue] = useState("");
-    const formContainerRef = useRef(null);
-
-    useEffect(() => {
-        // Focus management when the component is mounted
-        setTimeout(() => {
-            if (isForm && formContainerRef.current) {
-                const firstInput = formContainerRef.current.querySelector("input, textarea, select");
-                if (firstInput) firstInput.focus();
-            } else {
-                document.getElementById("promptInput")?.focus();
-            }
-        }, 100);
-
-        // Handle keyboard events
-        const handleKeyDown = (event) => {
-            if (event.key === "Enter") handleOk();
-            if (event.key === "Escape") handleCancel();
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isForm]);
-
-    const handleOk = () => {
-        const formData = isForm
-            ? new FormData(formContainerRef.current.querySelector("form"))
-            : inputValue;
-        onClose(formData);
-    };
-
-    const handleCancel = () => {
-        onClose(null);
-    };
-
+const CustomPrompt = ({ message, isForm, formContent, onConfirm, onCancel }) => {
     return (
         <div id="customPrompt" className="modal">
             <div className="modal-content">
-                <span id="closePrompt" className="close" onClick={handleCancel}>&times;</span>
-                <p id="promptMessage">{message}</p>
-                {!isForm ? (
-                    <input
-                        id="promptInput"
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                    />
+                <span id="closePrompt" className="close" onClick={onCancel}>&times;</span>
+                <h2>{message}</h2>
+                {isForm ? (
+                    <div id="formContainer">
+                        {formContent}
+                    </div>
                 ) : (
-                    <div ref={formContainerRef} dangerouslySetInnerHTML={{ __html: formContent }} />
+                    <>
+                        <p id="promptMessage"></p>
+                        <input type="text" id="promptInput"/>
+                    </>
                 )}
-                <div id="formContainer"></div>
-                <button id="promptOk" onClick={handleOk}>OK</button>
-                <button id="promptCancel" onClick={handleCancel}>Cancel</button>
+                <button id="promptOk" onClick={() => onConfirm(document.getElementById("addTaskForm"))}>OK</button>
+                <button id="promptCancel" onClick={onCancel}>Cancel</button>
             </div>
         </div>
     );
