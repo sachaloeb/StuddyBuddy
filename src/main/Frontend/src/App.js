@@ -1,16 +1,26 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import NavigationBar from "./components/NavigationBar";
-import Dashboard from "./pages/Dashboard";
-import TaskManagement from "./pages/TaskManagement";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-// import StudyRecommendations from './pages/StudyRecommendations';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import NavigationBar from './components/NavigationBar';
+import Dashboard from './pages/Dashboard';
+import TaskManagement from './pages/TaskManagement';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import BreakReminders from './pages/BreakReminders';
 import './index.css';
-
+import { isTokenExpired } from './utils/isTokenExpired';
+import useAxiosInterceptors from './utils/useAxiosInterceptors';
 
 function App() {
+    const navigate = useNavigate();
+    useAxiosInterceptors();
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token || isTokenExpired(token)) {
+            navigate('/login');
+        }
+    }, [navigate]);
+
     return (
         <div>
             <NavigationBar />
@@ -25,6 +35,5 @@ function App() {
         </div>
     );
 }
-
 
 export default App;

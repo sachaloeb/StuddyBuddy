@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
 import TaskCard from "../components/TaskCard";
-import TaskModal from "../components/TaskModal"; // Import TaskModal
+import TaskModal from "../components/TaskModal";
+import React, { useEffect, useState } from "react";
 import "../index.css";
 
-const TaskManagementPage = () => {
+const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
     const [showModal, setShowModal] = useState(false);
 
@@ -11,7 +11,7 @@ const TaskManagementPage = () => {
         fetchTasks();
     }, []);
 
-    async function fetchTasks() {
+    const fetchTasks = async () => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch('http://localhost:3002/api/tasks', {
@@ -31,9 +31,13 @@ const TaskManagementPage = () => {
         } catch (error) {
             console.error('Error fetching tasks:', error);
         }
-    }
+    };
 
-    async function handleAddTask(newTask) {
+    const openAddTaskModal = () => {
+        setShowModal(true);
+    };
+
+    const handleSaveTask = async (task) => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch('http://localhost:3002/api/tasks', {
@@ -42,7 +46,7 @@ const TaskManagementPage = () => {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(newTask),
+                body: JSON.stringify(task),
             });
 
             if (!response.ok) {
@@ -50,19 +54,65 @@ const TaskManagementPage = () => {
             }
 
             const savedTask = await response.json();
-            setTasks([...tasks, savedTask]);
+            console.log("Task saved:", savedTask);
+            setTasks([...tasks, savedTask.task]); // Ensure the new task is added to the state
         } catch (error) {
             console.error('Error saving task:', error);
         }
         setShowModal(false);
-    }
-
-    const handleOpenModal = () => {
-        setShowModal(true);
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
+    };
+
+    const handleToggleTaskCompletion = async (taskId, isCompleted) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ IsCompleted: !isCompleted }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update task');
+            }
+
+            const updatedTask = await response.json();
+            setTasks(tasks.map(task => task._id === taskId ? updatedTask : task));
+        } catch (error) {
+            console.error('Error updating task:', error);
+        }
+    };
+
+    const handleEditTask = (taskId) => {
+        // Logic to handle editing a task
+        console.log(`Edit task with ID: ${taskId}`);
+    };
+
+    const handleDeleteTask = async (taskId) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
+                method: 'DELETE',
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete task');
+            }
+
+            setTasks(tasks.filter(task => task._id !== taskId));
+            console.log(`Deleted task with ID: ${taskId}`);
+        } catch (error) {
+            console.error('Error deleting task:', error);
+        }
     };
 
     return (
@@ -72,24 +122,30 @@ const TaskManagementPage = () => {
                 <button
                     id="addTaskButton"
                     className="modal-button"
-                    onClick={handleOpenModal}
+                    onClick={openAddTaskModal}
                 >
                     Add Task
                 </button>
 
-                {/* Render TaskModal when showModal is true */}
                 {showModal && (
                     <TaskModal
                         isOpen={showModal}
                         onClose={handleCloseModal}
-                        onConfirm={handleAddTask}
+                        onConfirm={handleSaveTask}
+                        message="Add Task"
                     />
                 )}
 
                 <section className="tasks" id="tasks">
                     <ul>
                         {tasks.map((task, index) => (
-                            <TaskCard key={index} task={task} />
+                            <TaskCard
+                                key={index}
+                                task={task}
+                                handleToggleTaskCompletion={handleToggleTaskCompletion}
+                                handleEditTask={handleEditTask}
+                                handleDeleteTask={handleDeleteTask}
+                            />
                         ))}
                     </ul>
                 </section>
@@ -98,4 +154,4 @@ const TaskManagementPage = () => {
     );
 };
 
-export default TaskManagementPage;
+export default TaskManagement;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CustomPrompt from "./CustomPrompt";
+import CustomPrompt from "./TaskModal";
 import "../index.css";
 
 const AddTaskModal = ({ calendar, onClose, onSave }) => {
@@ -10,7 +10,6 @@ const AddTaskModal = ({ calendar, onClose, onSave }) => {
     const [endTime, setEndTime] = useState("");
     const [taskType, setTaskType] = useState("Personal");
     const [taskPriority, setTaskPriority] = useState("Medium");
-
     const validateTaskInputs = (taskName, startDateTime, endDateTime) => {
         if (!taskName || !startDateTime || !endDateTime) {
             alert("All fields must be filled!");
@@ -46,12 +45,6 @@ const AddTaskModal = ({ calendar, onClose, onSave }) => {
     };
 
     return (
-        <CustomPrompt
-            message="Add Task"
-            isForm={true}
-            onConfirm={(data) => (data ? handleSubmit() : onClose())}
-            onCancel={onClose}
-            formContent={
                 <form id="addTaskForm">
                     <label htmlFor="taskName">Task Name:</label>
                     <input type="text" id="taskName" value={taskName} onChange={(e) => setTaskName(e.target.value)} required />
@@ -85,10 +78,7 @@ const AddTaskModal = ({ calendar, onClose, onSave }) => {
                         <option value="Medium">Medium</option>
                         <option value="Low">Low</option>
                     </select>
-                </form>
-            }
-        />
-    );
+                </form>);
 };
 
 export default AddTaskModal;

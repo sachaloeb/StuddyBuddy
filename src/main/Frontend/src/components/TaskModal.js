@@ -1,54 +1,90 @@
-import React, { useState } from "react";
-import "../index.css" // Ensure you create a corresponding CSS file for styling
+import React, { useState, useEffect } from "react";
+import "../index.css";
+import moment from 'moment';
 
-const TaskModal = ({ isOpen, onClose, onConfirm, initialTask }) => {
-    const [taskName, setTaskName] = useState(initialTask?.name || "");
-    const [startDate, setStartDate] = useState(initialTask?.startDate || "");
-    const [startTime, setStartTime] = useState(initialTask?.startTime || "");
-    const [endDate, setEndDate] = useState(initialTask?.endDate || "");
-    const [endTime, setEndTime] = useState(initialTask?.endTime || "");
-    const [taskType, setTaskType] = useState(initialTask?.type || "Personal");
-    const [priority, setPriority] = useState(initialTask?.priority || "Medium");
+const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) => {
+    const [taskName, setTaskName] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [startTime, setStartTime] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [endTime, setEndTime] = useState("");
+    const [taskType, setTaskType] = useState("Personal");
+    const [priority, setPriority] = useState("Medium");
 
-    const handleSubmit = (e) => {
+    useEffect(() => {
+        if (initialTask) {
+            setTaskName(initialTask.name);
+            setStartTime(moment(initialTask.startDate).format("HH:mm"));
+            setEndDate(moment(initialTask.endDate).format("YYYY-MM-DD"));
+            setEndTime(moment(initialTask.endDate).format("HH:mm"));
+            setEndDate(moment(initialTask.endDate).format("YYYY-MM-DD"));
+            setTaskType(initialTask.type);
+            setPriority(initialTask.priority);
+        }
+    }, [initialTask]);
+
+    const validateTaskInputs = (taskName, startDateTime, endDateTime) => {
+        if (!taskName || !startDateTime || !endDateTime) {
+            alert("All fields must be filled!");
+            return false;
+        }
+
+        if (startDateTime >= endDateTime) {
+            alert("End date must be after start date!");
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const startDateTime = new Date(`${startDate}T${startTime}`);
-        const endDateTime = new Date(`${endDate}T${endTime}`);
+
+        const startDateTime = moment(`${startDate}T${startTime}`);
+        const endDateTime = moment(`${endDate}T${endTime}`);
+
+        if (!validateTaskInputs(taskName, startDateTime, endDateTime)) {
+            return;
+        }
+
         const task = {
             name: taskName,
             startDate: startDateTime.toISOString(),
-            dueDate: endDateTime.toISOString(),
+            endDate: endDateTime.toISOString(),
             type: taskType,
-            priority: priority,
+            priority,
+            IsCompleted: initialTask?.IsCompleted || false
         };
-        onConfirm(task);
+
+        await onConfirm(task);
+        onClose();
     };
 
     if (!isOpen) return null;
 
     return (
-        <div id="customPrompt" className="modal">
-            <div className="modal-content">
-                <span id="closePrompt" className="close">&times;</span>
-                <h2>{initialTask ? "Edit Task" : "Add Task"}</h2>
+        <div id="customPrompt" className="modal" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="modal-content" style={{ padding: "20px", backgroundColor: "#fff", borderRadius: "8px", maxWidth: "500px", width: "100%", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+                <span className="close" onClick={onClose} style={{ float: "right", fontSize: "24px", cursor: "pointer" }}>&times;</span>
+                <p>{message}</p>
                 <form onSubmit={handleSubmit}>
-                    <label>Task Name:</label>
-                    <input type="text" value={taskName} onChange={(e) => setTaskName(e.target.value)} required />
+                    <label htmlFor="taskName">Task Name:</label>
+                    <input type="text" id="taskName" value={taskName} onChange={(e) => setTaskName(e.target.value)} required />
 
-                    <label>Start Date:</label>
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                    <label htmlFor="startDate">Start Date (YYYY-MM-DD):</label>
+                    <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
 
-                    <label>Start Time:</label>
-                    <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
+                    <label htmlFor="startTime">Start Time (HH:MM):</label>
+                    <input type="time" id="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
 
-                    <label>End Date:</label>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                    <label htmlFor="endDate">End Date (YYYY-MM-DD):</label>
+                    <input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
 
-                    <label>End Time:</label>
-                    <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+                    <label htmlFor="endTime">End Time (HH:MM):</label>
+                    <input type="time" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
 
-                    <label>Type:</label>
-                    <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
+                    <label htmlFor="taskType">Type:</label>
+                    <select id="taskType" value={taskType} onChange={(e) => setTaskType(e.target.value)} required>
                         <option value="Personal">Personal</option>
                         <option value="Class">Class</option>
                         <option value="Assignment">Assignment</option>
@@ -58,14 +94,17 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask }) => {
                         <option value="Break">Break</option>
                     </select>
 
-                    <label>Priority:</label>
-                    <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                    <label htmlFor="taskPriority">Priority:</label>
+                    <select id="taskPriority" value={priority} onChange={(e) => setPriority(e.target.value)} required>
                         <option value="High">High</option>
                         <option value="Medium">Medium</option>
                         <option value="Low">Low</option>
                     </select>
 
-                    <button type="submit">{initialTask ? "Update Task" : "Add Task"}</button>
+                    <div style={{ marginTop: "10px", display: "flex", justifyContent: "flex-end" }}>
+                        <button type="submit" style={{ marginRight: "8px" }}>OK</button>
+                        <button type="button" onClick={onClose}>Cancel</button>
+                    </div>
                 </form>
             </div>
         </div>

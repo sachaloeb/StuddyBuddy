@@ -40,15 +40,21 @@ const createTask = async (req, res, next) => {
         const userId = req.user.id; // Get logged-in user ID
         console.log("Creating task for user:", userId); // Debugging Log
 
-        const { name, dueDate, priority = "Low", type } = req.body;
+        const { name, startDate=null, endDate, priority = "Low", type } = req.body;
 
-        const task = new Task({ author: userId, name, dueDate, priority, type });
+        // Validate required fields
+        if (!name || !startDate || !endDate || !type) {
+            return res.status(400).json({ message: "All fields are required!" });
+        }
+
+        const task = new Task({ author: userId, name, startDate, dueDate: endDate, priority, type });
         await task.save();
 
         console.log("Task created successfully:", task);
         res.status(201).json({ message: "Task created successfully!", task });
     } catch (error) {
         console.error("Error creating task:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
         next(error);
     }
 };
