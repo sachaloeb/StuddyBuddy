@@ -6,6 +6,7 @@ import "../index.css";
 const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [taskToEdit, setTaskToEdit] = useState(null);
 
     useEffect(() => {
         fetchTasks();
@@ -34,6 +35,7 @@ const TaskManagement = () => {
     };
 
     const openAddTaskModal = () => {
+        setTaskToEdit(null); // Ensure it's a new task
         setShowModal(true);
     };
 
@@ -89,9 +91,38 @@ const TaskManagement = () => {
         }
     };
 
+    const SaveEditedTask = async (task) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:3002/api/tasks/${task._id}`, {
+                method: 'PUT',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(task),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update task');
+            }
+
+            const updatedTask = await response.json();
+            setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
+            console.log(`Updated task with ID: ${task._id}`);
+        } catch (error) {
+            console.error('Error updating task:', error);
+        }
+        setShowModal(false);
+    };
+
     const handleEditTask = (taskId) => {
-        // Logic to handle editing a task
-        console.log(`Edit task with ID: ${taskId}`);
+        // Find the task to edit
+        const task = tasks.find(t => t._id === taskId);
+        if (!task) return;
+
+        setTaskToEdit(task);
+        setShowModal(true);
     };
 
     const handleDeleteTask = async (taskId) => {
@@ -131,20 +162,21 @@ const TaskManagement = () => {
                     <TaskModal
                         isOpen={showModal}
                         onClose={handleCloseModal}
-                        onConfirm={handleSaveTask}
-                        message="Add Task"
+                        onConfirm={taskToEdit ? SaveEditedTask : handleSaveTask}
+                        message={taskToEdit ? "Edit Task" : "Add Task"}
+                        initialTask={taskToEdit} // Pass task data for editing
                     />
                 )}
 
                 <section className="tasks" id="tasks">
                     <ul>
-                        {tasks.map((task, index) => (
+                        {tasks.map((task) => (
                             <TaskCard
-                                key={index}
+                                key={task._id}
                                 task={task}
-                                handleToggleTaskCompletion={handleToggleTaskCompletion}
-                                handleEditTask={handleEditTask}
-                                handleDeleteTask={handleDeleteTask}
+                                handleToggleTaskCompletion={() => handleToggleTaskCompletion(task._id, task.IsCompleted)}
+                                handleEditTask={() => handleEditTask(task._id)} // Fixed incorrect invocation
+                                handleDeleteTask={() => handleDeleteTask(task._id)}
                             />
                         ))}
                     </ul>

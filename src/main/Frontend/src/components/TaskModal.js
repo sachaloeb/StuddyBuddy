@@ -3,6 +3,7 @@ import "../index.css";
 import moment from 'moment';
 
 const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) => {
+    const [taskID, setTaskID] = useState("");
     const [taskName, setTaskName] = useState("");
     const [startDate, setStartDate] = useState("");
     const [startTime, setStartTime] = useState("");
@@ -13,11 +14,12 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
 
     useEffect(() => {
         if (initialTask) {
+            setTaskID(initialTask._id);
             setTaskName(initialTask.name);
+            setStartDate(moment(initialTask.startDate).format("YYYY-MM-DD"));
             setStartTime(moment(initialTask.startDate).format("HH:mm"));
-            setEndDate(moment(initialTask.endDate).format("YYYY-MM-DD"));
-            setEndTime(moment(initialTask.endDate).format("HH:mm"));
-            setEndDate(moment(initialTask.endDate).format("YYYY-MM-DD"));
+            setEndDate(moment(initialTask.dueDate).format("YYYY-MM-DD"));
+            setEndTime(moment(initialTask.dueDate).format("HH:mm"));
             setTaskType(initialTask.type);
             setPriority(initialTask.priority);
         }
@@ -48,9 +50,10 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
         }
 
         const task = {
+            _id: taskID,
             name: taskName,
             startDate: startDateTime.toISOString(),
-            endDate: endDateTime.toISOString(),
+            dueDate: endDateTime.toISOString(),
             type: taskType,
             priority,
             IsCompleted: initialTask?.IsCompleted || false
