@@ -6,6 +6,20 @@ const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key"; // Change this to a secure environment variable
 
+// Store active break reminders
+const activeReminders = {};
+
+// Function to start break reminders for a user
+const startBreakReminder = (userId) => {
+    if (activeReminders[userId]) {
+        clearInterval(activeReminders[userId]); // Clear existing reminder if exists
+    }
+    activeReminders[userId] = setInterval(() => {
+        console.log(`Reminder: User ${userId}, it's time to take a break!`);
+        // Here you can add logic to notify the user via WebSocket, email, or frontend alert
+    }, 60 * 60 * 1000); // Default: every 60 minutes
+};
+
 // Register User
 router.post('/register', async (req, res) => {
     try {
@@ -37,7 +51,11 @@ router.post('/login', async (req, res) => {
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
-        res.json({ token });
+
+        // Start break reminder when user logs in
+        startBreakReminder(user._id);
+
+        res.json({ token, message: "Login successful. Break reminders activated." });
     } catch (err) {
         res.status(500).json({ message: "Server Error" });
     }
