@@ -27,7 +27,21 @@ const TaskSchema = new mongoose.Schema(
     { collection: 'tasks' }
 );
 
-//TaskSchema.index({ author: 1, dueDate: 1, completed: 1 });
+TaskSchema.index({ author: 1, dueDate: 1, completed: 1 }, function(err, result) {
+    if (err) {
+        console.error("Error creating index:", err);
+    } else {
+        console.log("Index created:", result);
+    }
+});
 
 const Tasks = mongoose.models.Task || mongoose.model('Task', TaskSchema);
+
+const displayIndexes = async () => {
+    const indexes = await Tasks.collection.getIndexes();
+    console.log("Indexes:", indexes);
+};
+
+displayIndexes();
+
 module.exports = Tasks;
