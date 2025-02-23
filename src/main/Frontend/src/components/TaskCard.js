@@ -1,7 +1,7 @@
 import React from "react";
 import "../index.css";
 
-const TaskCard = ({ task, handleToggleTaskCompletion, handleEditTask, handleDeleteTask }) => {
+const TaskCard = React.memo(({ task, handleToggleTaskCompletion, handleEditTask, handleDeleteTask }) => {
     return (
         <div className={`task-card ${task.IsCompleted ? "completed" : ""}`} key={task.id}>
             <h3>{task.name}</h3>
@@ -23,6 +23,6 @@ const TaskCard = ({ task, handleToggleTaskCompletion, handleEditTask, handleDele
             </div>
         </div>
     );
-};
+});
 
 export default TaskCard;

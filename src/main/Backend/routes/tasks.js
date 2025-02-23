@@ -3,6 +3,7 @@ const Task = require('../Models/Tasks');
 const { getTasks, createTask } = require("../controllers/taskController");
 const authMiddleware = require('../middleware/auth');
 const validateTask = require("../middleware/validateTask");
+const cache = require("../middleware/cache");
 const router = express.Router();
 
 // Get all tasks for logged-in user

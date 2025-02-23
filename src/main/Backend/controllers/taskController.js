@@ -1,4 +1,5 @@
 const Task = require("../models/Tasks");
+const redis = require("../middleware/cache");
 
 // 🔥 GET /tasks - Fetch paginated & filtered tasks (for logged-in user)
 const getTasks = async (req, res, next) => {

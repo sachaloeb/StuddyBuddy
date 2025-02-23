@@ -1,7 +1,9 @@
 import TaskCard from "../components/TaskCard";
-import TaskModal from "../components/TaskModal";
-import React, { useEffect, useState } from "react";
+// import TaskModal from "../components/TaskModal";
+import React, { useEffect, useState,lazy,Suspense } from "react";
 import "../index.css";
+
+const TaskModal = lazy(() => import("../components/TaskModal"));
 
 const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
@@ -159,13 +161,15 @@ const TaskManagement = () => {
                 </button>
 
                 {showModal && (
-                    <TaskModal
-                        isOpen={showModal}
-                        onClose={handleCloseModal}
-                        onConfirm={taskToEdit ? SaveEditedTask : handleSaveTask}
-                        message={taskToEdit ? "Edit Task" : "Add Task"}
-                        initialTask={taskToEdit} // Pass task data for editing
-                    />
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <TaskModal
+                            isOpen={showModal}
+                            onClose={handleCloseModal}
+                            onConfirm={taskToEdit ? SaveEditedTask : handleSaveTask}
+                            message={taskToEdit ? "Edit Task" : "Add Task"}
+                            initialTask={taskToEdit} // Pass task data for editing
+                        />
+                    </Suspense>
                 )}
 
                 <section className="tasks" id="tasks">

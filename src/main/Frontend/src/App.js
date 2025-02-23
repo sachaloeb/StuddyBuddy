@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import NavigationBar from './components/NavigationBar';
-import Dashboard from './pages/Dashboard';
-import TaskManagement from './pages/TaskManagement';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import BreakReminders from './pages/BreakReminders';
 import './index.css';
 import { isTokenExpired } from './utils/isTokenExpired';
 import useAxiosInterceptors from './utils/useAxiosInterceptors';
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const TaskManagement = lazy(() => import("./pages/TaskManagement"));
 
 function App() {
     const navigate = useNavigate();
@@ -25,9 +26,20 @@ function App() {
         <div>
             <NavigationBar />
             <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/tasks" element={<TaskManagement />} />
+                <Route path="/" element={
+                    <Suspense fallback={<div>Loading Dashboard...</div>}>
+                        <Dashboard />
+                    </Suspense>} />
+                <Route path="/dashboard" element={
+                    <Suspense fallback={<div>Loading Dashboard...</div>}>
+                        <Dashboard />
+                    </Suspense>
+                } />
+                <Route path="/tasks" element={
+                    <Suspense fallback={<div>Loading Task Management...</div>}>
+                        <TaskManagement />
+                    </Suspense>
+                } />
                 <Route path="/breakReminders" element={<BreakReminders />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
