@@ -1,12 +1,31 @@
-// src/components/NavigationBar.js
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import profileIcon from "../assets/user-profile-icon.svg";
+import "../index.css";
 
 const NavigationBar = () => {
+    const [showMenu, setShowMenu] = useState(false);
+    const navigate = useNavigate();
+
+    const handleProfileClick = () => {
+        setShowMenu(!showMenu);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        navigate("/login");
+    };
+
     return (
         <div>
             <header>
                 <h1>StudyBuddy</h1>
+                <img src={profileIcon} alt="Profile Icon" id="profileIcon" onClick={handleProfileClick} />
+                {showMenu && (
+                    <div className="dropdown-menu">
+                        <button onClick={handleLogout}>Logout</button>
+                    </div>
+                )}
             </header>
             <nav className="navbar">
                 <ul>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../index.css";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -26,7 +27,7 @@ const Login = () => {
     };
 
     return (
-        <div>
+        <div className="container">
             <h2>🔑 Login</h2>
             <form onSubmit={handleSubmit}>
                 <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
