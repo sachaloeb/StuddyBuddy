@@ -4,6 +4,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 import BreakReminder from '../components/BreakReminders';
+import api from '../utils/api';
 import '../index.css';
 
 const Dashboard = () => {
@@ -15,22 +16,12 @@ const Dashboard = () => {
     }, []);
 
     const fetchTasks = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const response = await fetch("http://localhost:3002/api/tasks", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error("Failed to fetch tasks");
-            const data = await response.json();
-            const events = data.tasks.map(task => ({
-                title: task.name,
-                start: task.startDate,
-                end: task.dueDate,
-                id: task.id,
-            }));
+        try{
+            let events = await api.fetchTasks();
             setEvents(events);
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
+        }catch(error){
+            console.error('Error fetching tasks:', error);
+            alert('Failed to load tasks. Please try again.');
         }
     };
 

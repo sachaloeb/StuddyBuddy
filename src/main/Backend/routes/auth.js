@@ -50,12 +50,21 @@ router.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h", algorithm: "HS256" });
 
         // Start break reminder when user logs in
         startBreakReminder(user._id);
 
         res.json({ token, message: "Login successful. Break reminders activated." });
+    } catch (err) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+router.post('/logout', (req, res) => {
+    try {
+        // server-side log out operations
+        res.json({ message: "Logout successful" });
     } catch (err) {
         res.status(500).json({ message: "Server Error" });
     }

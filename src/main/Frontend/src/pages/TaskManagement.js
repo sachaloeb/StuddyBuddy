@@ -2,6 +2,7 @@ import TaskCard from "../components/TaskCard";
 // import TaskModal from "../components/TaskModal";
 import React, { useEffect, useState,lazy,Suspense } from "react";
 import "../index.css";
+import api from "../utils/api";
 
 const TaskModal = lazy(() => import("../components/TaskModal"));
 
@@ -16,23 +17,16 @@ const TaskManagement = () => {
 
     const fetchTasks = async () => {
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch('http://localhost:3002/api/tasks', {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch tasks');
-            }
-
-            const data = await response.json();
-            if (Array.isArray(data.tasks)) {
-                setTasks(data.tasks);
+            const data = await api.fetchTasks();
+            if (Array.isArray(data)) {
+                setTasks(data);
             } else {
                 console.error('Fetched data does not contain tasks array:', data);
             }
         } catch (error) {
             console.error('Error fetching tasks:', error);
+            alert('Failed to load tasks. Please try again.');
         }
     };
 
@@ -72,21 +66,7 @@ const TaskManagement = () => {
 
     const handleToggleTaskCompletion = async (taskId, isCompleted) => {
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
-                method: 'PUT',
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ IsCompleted: !isCompleted }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update task');
-            }
-
-            const updatedTask = await response.json();
+            const updatedTask = await api.completeTask(taskId, isCompleted);
             setTasks(tasks.map(task => task._id === taskId ? updatedTask : task));
         } catch (error) {
             console.error('Error updating task:', error);
@@ -95,25 +75,12 @@ const TaskManagement = () => {
 
     const SaveEditedTask = async (task) => {
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:3002/api/tasks/${task._id}`, {
-                method: 'PUT',
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(task),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update task');
-            }
-
-            const updatedTask = await response.json();
+            const updatedTask = await api.editTask(task);
             setTasks(tasks.map(t => t._id === task._id ? updatedTask : t));
             console.log(`Updated task with ID: ${task._id}`);
         } catch (error) {
             console.error('Error updating task:', error);
+            alert('Failed to update task. Please try again.');
         }
         setShowModal(false);
     };
@@ -129,18 +96,7 @@ const TaskManagement = () => {
 
     const handleDeleteTask = async (taskId) => {
         try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
-                method: 'DELETE',
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete task');
-            }
-
+            await api.deleteTask(taskId);
             setTasks(tasks.filter(task => task._id !== taskId));
             console.log(`Deleted task with ID: ${taskId}`);
         } catch (error) {
