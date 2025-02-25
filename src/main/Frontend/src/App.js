@@ -7,6 +7,7 @@ import BreakReminders from './pages/BreakReminders';
 import './index.css';
 import { isTokenExpired } from './utils/isTokenExpired';
 import useAxiosInterceptors from './utils/useAxiosInterceptors';
+import Footer from "./components/Footer";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const TaskManagement = lazy(() => import("./pages/TaskManagement"));
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
             </Routes>
+            <Footer />
         </div>
     );
 }

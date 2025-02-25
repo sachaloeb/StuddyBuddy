@@ -27,12 +27,12 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
 
     const validateTaskInputs = (taskName, startDateTime, endDateTime) => {
         if (!taskName || !startDateTime || !endDateTime) {
-            alert("All fields must be filled!");
+            alert("⚠️ All fields must be filled!");
             return false;
         }
 
         if (startDateTime >= endDateTime) {
-            alert("End date must be after start date!");
+            alert("⚠️ End date must be after start date!");
             return false;
         }
 
@@ -66,25 +66,56 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
     if (!isOpen) return null;
 
     return (
-        <div id="customPrompt" className="modal" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div className="modal-content" style={{ padding: "20px", backgroundColor: "#fff", borderRadius: "8px", maxWidth: "500px", width: "100%", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
-                <span className="close" onClick={onClose} style={{ float: "right", fontSize: "24px", cursor: "pointer" }}>&times;</span>
-                <p>{message}</p>
+        <div id="customPrompt" className="modal" style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay effect
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 9999
+        }}>
+            <div className="modal-content" style={{
+                padding: "20px",
+                backgroundColor: "#fff",
+                borderRadius: "8px",
+                maxWidth: "500px",
+                width: "90%",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
+            }}>
+                <span className="close" onClick={onClose} style={{
+                    float: "right",
+                    fontSize: "24px",
+                    cursor: "pointer"
+                }}>&times;</span>
+
+                <h2 style={{ textAlign: "center", marginBottom: "15px" }}>{message}</h2>
+
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="taskName">Task Name:</label>
                     <input type="text" id="taskName" value={taskName} onChange={(e) => setTaskName(e.target.value)} required />
 
-                    <label htmlFor="startDate">Start Date (YYYY-MM-DD):</label>
-                    <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div style={{ width: "48%" }}>
+                            <label>Start Date:</label>
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                        </div>
+                        <div style={{ width: "48%" }}>
+                            <label>Start Time:</label>
+                            <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                        </div>
+                    </div>
 
-                    <label htmlFor="startTime">Start Time (HH:MM):</label>
-                    <input type="time" id="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-
-                    <label htmlFor="endDate">End Date (YYYY-MM-DD):</label>
-                    <input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
-
-                    <label htmlFor="endTime">End Time (HH:MM):</label>
-                    <input type="time" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div style={{ width: "48%" }}>
+                            <label>End Date:</label>
+                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                        </div>
+                        <div style={{ width: "48%" }}>
+                            <label>End Time:</label>
+                            <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+                        </div>
+                    </div>
 
                     <label htmlFor="taskType">Type:</label>
                     <select id="taskType" value={taskType} onChange={(e) => setTaskType(e.target.value)} required>
@@ -104,9 +135,13 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
                         <option value="Low">Low</option>
                     </select>
 
-                    <div style={{ marginTop: "10px", display: "flex", justifyContent: "flex-end" }}>
-                        <button type="submit" style={{ marginRight: "8px" }}>OK</button>
-                        <button type="button" onClick={onClose}>Cancel</button>
+                    <div style={{
+                        marginTop: "10px",
+                        display: "flex",
+                        justifyContent: "space-between"
+                    }}>
+                        <button type="submit" id="promptOk" className="ok-button">OK</button>
+                        <button type="button" id="promptCancel" className="cancel-button" onClick={onClose}>Cancel</button>
                     </div>
                 </form>
             </div>

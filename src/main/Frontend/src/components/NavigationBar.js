@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import profileIcon from "../assets/user-profile-icon.svg";
 import "../index.css";
+import api from "../utils/api";
 
 const NavigationBar = () => {
     const [showMenu, setShowMenu] = useState(false);
@@ -11,8 +12,9 @@ const NavigationBar = () => {
         setShowMenu(!showMenu);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         localStorage.removeItem("token");
+        await api.logout();
         navigate("/login");
     };
 

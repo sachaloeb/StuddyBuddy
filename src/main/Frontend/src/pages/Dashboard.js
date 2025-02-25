@@ -18,6 +18,17 @@ const Dashboard = () => {
     const fetchTasks = async () => {
         try{
             let events = await api.fetchTasks();
+            events = events.map((task) => ({
+                id: task._id,
+                title: task.name,
+                start: task.startDate,
+                end: task.dueDate,
+                extendedProps: {
+                    priority: task.priority,
+                    type: task.type,
+                    isCompleted: task.isCompleted
+                }
+            }));
             setEvents(events);
         }catch(error){
             console.error('Error fetching tasks:', error);

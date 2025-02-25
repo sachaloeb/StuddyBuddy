@@ -38,24 +38,25 @@ const TaskManagement = () => {
     const handleSaveTask = async (task) => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch('http://localhost:3002/api/tasks', {
-                method: 'POST',
+            console.log("Saving task with data:", task); // Log the task data
+            const response = await fetch("http://localhost:3002/api/tasks", {
+                method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
+                    'Authorization': `Bearer ${token}`,
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(task),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save task');
+                throw new Error("Failed to save task");
             }
 
-            const savedTask = await response.json();
-            console.log("Task saved:", savedTask);
-            setTasks([...tasks, savedTask.task]); // Ensure the new task is added to the state
+            const result = await response.json();
+            console.log("Task saved successfully:", result);
+            setTasks([...tasks, result.task]);
         } catch (error) {
-            console.error('Error saving task:', error);
+            console.error("Error saving task:", error);
         }
         setShowModal(false);
     };
@@ -107,7 +108,7 @@ const TaskManagement = () => {
     return (
         <div>
             <section id="task-tracking">
-                <h1>Task Management</h1>
+                <h2>Task Management</h2>
                 <button
                     id="addTaskButton"
                     className="modal-button"

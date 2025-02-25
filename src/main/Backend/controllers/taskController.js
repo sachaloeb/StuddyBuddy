@@ -41,7 +41,7 @@ const createTask = async (req, res, next) => {
         const userId = req.user.id; // Get logged-in user ID
         console.log("Creating task for user:", userId); // Debugging Log
 
-        const { name, startDate=null, endDate, priority = "Low", type } = req.body;
+        const { name, startDate = null, endDate, priority = "Low", type } = req.body;
 
         // Validate required fields
         if (!name || !startDate || !endDate || !type) {
