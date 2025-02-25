@@ -531,6 +531,51 @@ h1, h2, h3 {
   text-align: center;
 }
 
+/* Break reminders style */
+.break-reminders {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.break-reminders h2 {
+  text-align: center;
+}
+
+.break-reminders form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.break-reminders form label {
+  margin-bottom: 10px;
+}
+
+.break-reminders form input {
+  margin-bottom: 10px;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.break-reminders form button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.break-reminders ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.break-reminders ul li {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+/* Responsive Design */
 /* Tablet view */
 @media (min-width: 768px) {
   .navbar {

@@ -7,19 +7,18 @@ const BreakReminder = require("../Models/BreakReminder");
 // src/main/Backend/controllers/breakReminders.js
 const addBreakReminder = async (req, res) => {
     try {
-        const userId = req.user.id; // Get the logged-in user's ID
-        const { message } = req.body; // Allow custom messages
-
-        const reminder = new BreakReminder({
+        const userId = req.user.id;
+        const { message, time } = req.body;
+        const newReminder = new BreakReminder({
             userId,
-            message: message || "⏳ Time for a break! Stay refreshed and productive."
+            message,
+            time: new Date(time), // Parse the ISO string to a Date object
         });
-
-        await reminder.save();
-        res.status(201).json({ message: "Break reminder added successfully!" });
+        const savedReminder = await newReminder.save();
+        res.status(201).json(savedReminder);
     } catch (error) {
-        console.error("❌ Error saving break reminder:", error);
-        res.status(500).json({ message: "Server Error" });
+        console.error('Error adding reminder:', error);
+        res.status(500).json({ error: 'Failed to add reminder' });
     }
 };
 
@@ -57,4 +56,19 @@ const getBreakReminders = async (req, res) => {
     }
 };
 
-module.exports = { getBreakReminders, addBreakReminder };
+const deleteBreakReminder = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const reminder = await BreakReminder.findOneAndDelete({ _id: id, userId });
+        if (!reminder) {
+            return res.status(404).json({ message: "Reminder not found" });
+        }
+        res.status(200).json({ message: "Reminder deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting reminder:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+module.exports = { getBreakReminders, addBreakReminder, deleteBreakReminder };
