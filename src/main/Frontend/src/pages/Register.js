@@ -24,16 +24,18 @@ const Register = () => {
     };
 
     return (
-        <div>
-            <h2>📝 Register</h2>
-            <form onSubmit={handleSubmit}>
-                <input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} required />
-                <input type="text" placeholder="First Name" onChange={(e) => setFirstName(e.target.value)} required />
-                <input type="text" placeholder="Last Name" onChange={(e) => setLastName(e.target.value)} required />
-                <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
-                <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
-                <button type="submit">Register</button>
-            </form>
+        <div className='login'>
+            <div className="container">
+                <h2>Register</h2>
+                <form id="registerForm">
+                    <input type="text" placeholder='Username' id="username" name="username" required/>
+                    <input type="text" placeholder='First Name' id="firstName" name="firstName" required/>
+                    <input type="text" placeholder='Last Name' id="lastName" name="lastName" required/>
+                    <input type="email" placeholder='E-mail' id="email" name="email" required/>
+                    <input type="password" placeholder='Password' id="password" name="password" required/>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
         </div>
     );
 };
