@@ -1,29 +1,20 @@
-const redis = require("redis");
+const client = require("../config/redisClient");
 
-const client = redis.createClient({
-    socket: { host: "127.0.0.1", port: 6379 },
-});
+const cache = (req, res, next) => {
+    const userId = req.params.userId;
 
-client.connect().catch(console.error);
+    client.get(userId, (err, data) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send(err);
+        }
 
-const cache = async (req, res, next) => {
-    console.log("✅ Cache middleware triggered for:", req.originalUrl); // Debugging log
-
-    const key = req.originalUrl;
-    const cachedData = await client.get(key);
-
-    if (cachedData) {
-        console.log("✅ Serving from cache");
-        return res.json(JSON.parse(cachedData)); // Serve cached data
-    }
-
-    res.sendResponse = res.json;
-    res.json = (body) => {
-        client.setEx(key, 300, JSON.stringify(body)); // Cache response for 5 minutes
-        res.sendResponse(body);
-    };
-
-    next();
+        if (data !== null) {
+            res.send(data);
+        } else {
+            next();
+        }
+    });
 };
 
 module.exports = cache;

@@ -3,48 +3,52 @@ const Task = require('../Models/Tasks');
 const { getTasks, createTask } = require("../controllers/taskController");
 const authMiddleware = require('../middleware/auth');
 const validateTask = require("../middleware/validateTask");
-const cache = require("../middleware/cache");
+const client = require('../config/redisClient');
 const router = express.Router();
 
-// Get all tasks for logged-in user
-// router.get('/', authMiddleware, async (req, res) => {
-//     try {
-//         const tasks = await Task.find({ author: req.user.id });
-//         res.json(tasks);
-//     } catch (err) {
-//         res.status(500).json({ message: "Server Error" });
-//     }
-// });
-router.get("/", authMiddleware, getTasks);
+// Ensure Redis client is connected
+if (!client) {
+    console.error("Redis client is undefined! Check redisClient.js");
+}
 
-// Create a new task (only for authenticated users)
-// router.post('/', authMiddleware, async (req, res) => {
-//     try {
-//         const { name, startDate, dueDate, type, priority } = req.body;
-//
-//         if (!name || !dueDate || !type) {
-//             return res.status(400).json({ message: "Missing required fields" });
-//         }
-//
-//         const newTask = new Task({
-//             name,
-//             author: req.user.id, // Ensure user ID is being set correctly
-//             startDate,
-//             dueDate,
-//             type,
-//             priority
-//         });
-//
-//         await newTask.save();
-//         res.status(201).json(newTask);
-//     } catch (err) {
-//         console.error("Error saving task:", err);
-//         res.status(500).json({ message: "Server Error", error: err.message });
-//     }
-// });
+client.on('error', (err) => {
+    console.error('Redis error:', err);
+});
+
+// Middleware to check cache
+const checkCache = async (req, res, next) => {
+    const { userId } = req.params;
+    try {
+        const data = await client.get(`tasks:${userId}`);
+        if (data) {
+            console.log('Cache hit');
+            return res.json(JSON.parse(data));
+        } else {
+            console.log('Cache miss');
+            next();
+        }
+    } catch (err) {
+        console.error("Redis error:", err);
+        next();
+    }
+};
+
+// Route to get tasks
+router.get('/:userId', checkCache, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const tasks = await Task.find({ userId });
+
+        res.json(tasks);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+router.get("/", authMiddleware, getTasks);
 router.post("/", authMiddleware, validateTask, createTask);
 
-// 🔥 PUT /tasks/:id - Update a task (Ensure correct author)
 router.put("/:id", authMiddleware, async (req, res) => {
     try {
         const { name, startDate, dueDate, type, priority, IsCompleted } = req.body;
@@ -68,7 +72,6 @@ router.put("/:id", authMiddleware, async (req, res) => {
     }
 });
 
-// 🔥 DELETE /tasks/:id - Delete a task (Ensure correct author)
 router.delete("/:id", authMiddleware, async (req, res) => {
     try {
         const task = await Task.findById(req.params.id);
@@ -86,7 +89,5 @@ router.delete("/:id", authMiddleware, async (req, res) => {
         res.status(500).json({ message: "Server Error", error: err.message });
     }
 });
-
-
 
 module.exports = router;
