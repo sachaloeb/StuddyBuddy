@@ -27,12 +27,12 @@ const Register = () => {
         <div className='login'>
             <div className="container">
                 <h2>Register</h2>
-                <form id="registerForm">
-                    <input type="text" placeholder='Username' id="username" name="username" required/>
-                    <input type="text" placeholder='First Name' id="firstName" name="firstName" required/>
-                    <input type="text" placeholder='Last Name' id="lastName" name="lastName" required/>
-                    <input type="email" placeholder='E-mail' id="email" name="email" required/>
-                    <input type="password" placeholder='Password' id="password" name="password" required/>
+                <form id="registerForm" onSubmit={handleSubmit}>
+                    <input type="text" placeholder='Username' id="username" name="username" onChange={e=> setUsername(e.target.value)} required/>
+                    <input type="text" placeholder='First Name' id="firstName" name="firstName" onChange={e=> setFirstName(e.target.value)} required/>
+                    <input type="text" placeholder='Last Name' id="lastName" name="lastName" onChange={e=> setLastName(e.target.value)} required/>
+                    <input type="email" placeholder='E-mail' id="email" name="email" onChange={e=> setEmail(e.target.value)} required/>
+                    <input type="password" placeholder='Password' id="password" name="password" onChange={e=> setPassword(e.target.value)} required/>
                     <button type="submit">Register</button>
                 </form>
             </div>
