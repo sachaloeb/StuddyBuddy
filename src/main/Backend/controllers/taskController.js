@@ -72,13 +72,13 @@ const createTask = async (req, res, next) => {
         const userId = req.user.id;
         console.log("Creating task for user:", userId);
 
-        const { name, startDate = null, endDate, priority = "Low", type } = req.body;
+        const { name, startDate = null, dueDate, priority = "Low", type, IsCompleted = false } = req.body;
 
-        if (!name || !startDate || !endDate || !type) {
+        if (!name || !startDate || !dueDate || !type) {
             return res.status(400).json({ message: "All fields are required!" });
         }
 
-        const task = new Task({ author: userId, name, startDate, dueDate: endDate, priority, type });
+        const task = new Task({ author: userId, name, startDate, dueDate, priority, type, IsCompleted });
         await task.save();
 
         console.log("Task created successfully:", task);
@@ -98,5 +98,65 @@ const createTask = async (req, res, next) => {
     }
 };
 
+const updateTask = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const taskId = req.params.id;
+        const { name, startDate, dueDate, type, priority, IsCompleted } = req.body;
 
-module.exports = { getTasks, createTask };
+        let task = await Task.findById(req.params.id);
+        if (!task || task.author.toString() !== req.user.id) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+
+        task.name = name || task.name;
+        task.startDate = startDate || task.startDate;
+        task.dueDate = dueDate || task.dueDate;
+        task.type = type || task.type;
+        task.priority = priority || task.priority;
+        task.IsCompleted = IsCompleted !== undefined ? IsCompleted : task.IsCompleted;
+
+        await task.save();
+
+        try {
+            await client.del(`tasks:${userId}`);
+        } catch (redisErr) {
+            console.error("Redis error while clearing cache:", redisErr);
+        }
+
+        res.json(task);
+    } catch (err) {
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+const deleteTask = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const taskId = req.params.id;
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+        if (task.author.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        await Task.findByIdAndDelete(taskId);
+
+        try {
+            await client.del(`tasks:${userId}`);
+        } catch (redisErr) {
+            console.error("Redis error while clearing cache:", redisErr);
+        }
+
+        res.json({ message: "Task deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting task:", err);
+        res.status(500).json({ message: "Server Error", error: err.message });
+        next(err);
+    }
+};
+
+
+module.exports = { getTasks, createTask, updateTask, deleteTask };

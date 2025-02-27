@@ -13,9 +13,15 @@ const NavigationBar = () => {
     };
 
     const handleLogout = async () => {
-        localStorage.removeItem("token");
-        await api.logout();
-        navigate("/login");
+        try{
+            setShowMenu(false);
+            localStorage.removeItem("token");
+            await api.logout();
+            navigate("/login");
+        } catch (error) {
+            console.error('Error logging out:', error);
+            alert('Failed to logout. Please try again.');
+        }
     };
 
     return (

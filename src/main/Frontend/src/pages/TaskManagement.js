@@ -37,6 +37,14 @@ const TaskManagement = () => {
 
     const handleSaveTask = async (task) => {
         try {
+            // Check if all required fields are present
+            const requiredFields = ['name', 'startDate', 'dueDate', 'type', 'priority'];
+            for (const field of requiredFields) {
+                if (!task[field]) {
+                    throw new Error(`Field ${field} is required`);
+                }
+            }
+
             const token = localStorage.getItem("token");
             console.log("Saving task with data:", task); // Log the task data
             const response = await fetch("http://localhost:3002/api/tasks", {
@@ -49,6 +57,8 @@ const TaskManagement = () => {
             });
 
             if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Failed to save task:", errorData);
                 throw new Error("Failed to save task");
             }
 
@@ -57,6 +67,7 @@ const TaskManagement = () => {
             setTasks([...tasks, result.task]);
         } catch (error) {
             console.error("Error saving task:", error);
+            alert(`Failed to add task: ${error.message}`);
         }
         setShowModal(false);
     };
@@ -71,6 +82,7 @@ const TaskManagement = () => {
             setTasks(tasks.map(task => task._id === taskId ? updatedTask : task));
         } catch (error) {
             console.error('Error updating task:', error);
+            alert('Failed to update task. Please try again.');
         }
     };
 
@@ -102,6 +114,7 @@ const TaskManagement = () => {
             console.log(`Deleted task with ID: ${taskId}`);
         } catch (error) {
             console.error('Error deleting task:', error);
+            alert('Failed to delete task. Please try again.');
         }
     };
 

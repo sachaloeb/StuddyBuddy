@@ -1,6 +1,6 @@
 const express = require('express');
 const Task = require('../Models/Tasks');
-const { getTasks, createTask } = require("../controllers/taskController");
+const { getTasks, createTask, updateTask, deleteTask } = require("../controllers/taskController");
 const authMiddleware = require('../middleware/auth');
 const validateTask = require("../middleware/validateTask");
 const client = require('../config/redisClient');
@@ -49,45 +49,8 @@ router.get('/:userId', checkCache, async (req, res) => {
 router.get("/", authMiddleware, getTasks);
 router.post("/", authMiddleware, validateTask, createTask);
 
-router.put("/:id", authMiddleware, async (req, res) => {
-    try {
-        const { name, startDate, dueDate, type, priority, IsCompleted } = req.body;
+router.put("/:id", authMiddleware, updateTask);
 
-        let task = await Task.findById(req.params.id);
-        if (!task || task.author.toString() !== req.user.id) {
-            return res.status(404).json({ message: "Task not found" });
-        }
-
-        task.name = name || task.name;
-        task.startDate = startDate || task.startDate;
-        task.dueDate = dueDate || task.dueDate;
-        task.type = type || task.type;
-        task.priority = priority || task.priority;
-        task.IsCompleted = IsCompleted !== undefined ? IsCompleted : task.IsCompleted;
-
-        await task.save();
-        res.json(task);
-    } catch (err) {
-        res.status(500).json({ message: "Server Error" });
-    }
-});
-
-router.delete("/:id", authMiddleware, async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id);
-        if (!task) {
-            return res.status(404).json({ message: "Task not found" });
-        }
-        if (task.author.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Unauthorized" });
-        }
-
-        await Task.findByIdAndDelete(req.params.id);
-        res.json({ message: "Task deleted successfully" });
-    } catch (err) {
-        console.error("Error deleting task:", err);
-        res.status(500).json({ message: "Server Error", error: err.message });
-    }
-});
+router.delete("/:id", authMiddleware, deleteTask);
 
 module.exports = router;

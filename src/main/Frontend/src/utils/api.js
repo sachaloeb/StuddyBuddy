@@ -131,13 +131,19 @@ const api = {
     deleteTask: async (taskId) => {
         try {
             const token = localStorage.getItem('token');
+            console.log(`Attempting to delete task with ID: ${taskId}`); // Log the task ID
             const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-            if (!response.ok) throw new Error('Failed to delete task');
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.error(`Task with ID ${taskId} not found`);
+                }
+                throw new Error('Failed to delete task');
+            }
             console.log('Task deleted:', taskId);
             return await response.json();
         } catch (error) {

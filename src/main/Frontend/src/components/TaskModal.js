@@ -11,6 +11,7 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
     const [endTime, setEndTime] = useState("");
     const [taskType, setTaskType] = useState("Personal");
     const [priority, setPriority] = useState("Medium");
+    const [isCompleted, setIsCompleted] = useState(false);
 
     useEffect(() => {
         if (initialTask) {
@@ -22,6 +23,7 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
             setEndTime(moment(initialTask.dueDate).format("HH:mm"));
             setTaskType(initialTask.type);
             setPriority(initialTask.priority);
+            setIsCompleted(initialTask.IsCompleted);
         }
     }, [initialTask]);
 
@@ -42,21 +44,31 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const startDateTime = moment(`${startDate}T${startTime}`);
-        const endDateTime = moment(`${endDate}T${endTime}`);
+        const startDateTime = new Date(`${startDate}T${startTime}`);
+        const endDateTime = new Date(`${endDate}T${endTime}`);
 
         if (!validateTaskInputs(taskName, startDateTime, endDateTime)) {
             return;
         }
 
+        console.log("Task data:", {
+            taskID,
+            taskName,
+            startDate: startDateTime.toISOString(),
+            dueDate: endDateTime.toISOString(),
+            taskType,
+            priority,
+            isCompleted
+        });
+
         const task = {
             _id: taskID,
             name: taskName,
             startDate: startDateTime.toISOString(),
-            dueDate: endDateTime.toISOString(),
+            dueDate: endDateTime.toISOString(), // Ensure dueDate is set
             type: taskType,
             priority,
-            IsCompleted: initialTask?.IsCompleted || false
+            IsCompleted: isCompleted
         };
 
         await onConfirm(task);
