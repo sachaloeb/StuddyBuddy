@@ -38,31 +38,8 @@ const TaskManagement = () => {
     const handleSaveTask = async (task) => {
         try {
             // Check if all required fields are present
-            const requiredFields = ['name', 'startDate', 'dueDate', 'type', 'priority'];
-            for (const field of requiredFields) {
-                if (!task[field]) {
-                    throw new Error(`Field ${field} is required`);
-                }
-            }
 
-            const token = localStorage.getItem("token");
-            console.log("Saving task with data:", task); // Log the task data
-            const response = await fetch("http://localhost:3002/api/tasks", {
-                method: "POST",
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(task),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Failed to save task:", errorData);
-                throw new Error("Failed to save task");
-            }
-
-            const result = await response.json();
+            const result = await api.addTask(task);
             console.log("Task saved successfully:", result);
             setTasks([...tasks, result.task]);
         } catch (error) {

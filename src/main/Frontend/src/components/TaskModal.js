@@ -27,14 +27,9 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
         }
     }, [initialTask]);
 
-    const validateTaskInputs = (taskName, startDateTime, endDateTime) => {
-        if (!taskName || !startDateTime || !endDateTime) {
-            alert("⚠️ All fields must be filled!");
-            return false;
-        }
-
-        if (startDateTime >= endDateTime) {
-            alert("⚠️ End date must be after start date!");
+    const validateTaskInputs = (taskName, endDateTime) => {
+        if (!taskName || !endDateTime) {
+            alert("⚠️ Task name and end date must be filled!");
             return false;
         }
 
@@ -44,17 +39,17 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const startDateTime = new Date(`${startDate}T${startTime}`);
+        const startDateTime = startDate ? new Date(`${startDate}T${startTime}`) : null;
         const endDateTime = new Date(`${endDate}T${endTime}`);
 
-        if (!validateTaskInputs(taskName, startDateTime, endDateTime)) {
+        if (!validateTaskInputs(taskName, endDateTime)) {
             return;
         }
 
         console.log("Task data:", {
             taskID,
             taskName,
-            startDate: startDateTime.toISOString(),
+            startDate: startDateTime ? startDateTime.toISOString() : null,
             dueDate: endDateTime.toISOString(),
             taskType,
             priority,
@@ -64,8 +59,8 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
         const task = {
             _id: taskID,
             name: taskName,
-            startDate: startDateTime.toISOString(),
-            dueDate: endDateTime.toISOString(), // Ensure dueDate is set
+            startDate: startDateTime ? startDateTime.toISOString() : null,
+            dueDate: endDateTime.toISOString(),
             type: taskType,
             priority,
             IsCompleted: isCompleted
@@ -110,7 +105,7 @@ const TaskModal = ({ isOpen, onClose, onConfirm, initialTask=null, message }) =>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <div style={{ width: "48%" }}>
                             <label>Start Date:</label>
-                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                         </div>
                         <div style={{ width: "48%" }}>
                             <label>Start Time:</label>

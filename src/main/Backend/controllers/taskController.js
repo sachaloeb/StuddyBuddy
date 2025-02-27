@@ -74,8 +74,8 @@ const createTask = async (req, res, next) => {
 
         const { name, startDate = null, dueDate, priority = "Low", type, IsCompleted = false } = req.body;
 
-        if (!name || !startDate || !dueDate || !type) {
-            return res.status(400).json({ message: "All fields are required!" });
+        if (!name || !dueDate || !type) {
+            return res.status(400).json({ message: "Task name, due date, and type are required!" });
         }
 
         const task = new Task({ author: userId, name, startDate, dueDate, priority, type, IsCompleted });

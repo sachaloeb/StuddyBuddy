@@ -53,22 +53,34 @@ const api = {
     // Function to add a new task
     addTask: async (task) => {
         try {
+            // Check if all required fields are present
+            const requiredFields = ['name', 'startDate', 'dueDate', 'type', 'priority'];
+            for (const field of requiredFields) {
+                if (!task[field]) {
+                    throw new Error(`Field ${field} is required`);
+                }
+            }
+
             const token = localStorage.getItem("token");
-            const response = await fetch('http://localhost:3002/api/tasks', {
-                method: 'POST',
+            console.log("Saving task with data:", task); // Log the task data
+            const response = await fetch("http://localhost:3002/api/tasks", {
+                method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
+                    'Authorization': `Bearer ${token}`,
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(task),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save task');
+                const errorData = await response.json();
+                console.error("Failed to save task:", errorData);
+                throw new Error("Failed to save task");
             }
+
             return await response.json();
         } catch (error) {
-            console.error('Error adding task:', error);
+            console.error("Error saving task:", error);
         }
     },
 
