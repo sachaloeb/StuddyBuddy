@@ -34,6 +34,18 @@ cd StudyBuddy
 - Open the project in IntelliJ or your preferred IDE.
 - Ensure you have Java, Maven, Node.js, React.js and Express.js installed.
 
+## ▶️ Run project
+### Run Backend API
+```bash
+cd src/main/Backend
+npm run dev
+```
+### Run React Frontend
+```bash
+cd src/main/Frontend
+npm start
+```
+
 ## 📂 Project Structure
 - **Frontend**:
   - src/main/Frontend: React frontend.
